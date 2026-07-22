@@ -38,7 +38,7 @@ export default async function ClientDashboard() {
             </div>
             <div className="text-right">
               <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
-              {b.payment && <p className="mt-1 text-sm text-noir/60">{formatPrice(b.payment.amount)}</p>}
+              {b.payment && <p className="mt-1 text-sm text-noir/60">{formatPrice(Number(b.payment.amount))}</p>}
             </div>
           </Card>
         ))}
