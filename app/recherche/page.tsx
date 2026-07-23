@@ -35,15 +35,15 @@ const categoryIcons: Record<string, string> = {
 };
 
 interface RecherchePageProps {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     categorie?: string;
     ville?: string;
-  };
+  }>;
 }
 
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
-  const { q, categorie, ville } = searchParams;
+  const { q, categorie, ville } = await searchParams;
 
   const salons = await prisma.salon.findMany({
     where: {
