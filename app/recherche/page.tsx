@@ -53,10 +53,10 @@ export default async function RecherchePage({
       </form>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {salons.map((s) => {
+        {salons.map((s: (typeof salons)[number]) => {
           const ratingAvg =
             s.reviews.length > 0
-              ? s.reviews.reduce((sum, r) => sum + r.rating, 0) / s.reviews.length
+              ? s.reviews.reduce((sum: number, r: (typeof s.reviews)[number]) => sum + r.rating, 0) / s.reviews.length
               : undefined;
           return (
             <SalonCard
@@ -65,7 +65,7 @@ export default async function RecherchePage({
               name={s.name}
               city={s.city}
               coverUrl={s.coverUrl}
-              categories={s.categories.map((c) => c.category.name)}
+              categories={s.categories.map((c: (typeof s.categories)[number]) => c.category.name)}
               ratingAvg={ratingAvg}
               reviewCount={s.reviews.length}
               fromPrice={s.services[0] ? Number(s.services[0].price) : undefined}

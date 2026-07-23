@@ -30,7 +30,7 @@ export default async function ClientDashboard() {
 
       <h2 className="mt-10 font-display text-xl text-noir">Mes rendez-vous</h2>
       <div className="mt-4 space-y-3">
-        {bookings.map((b) => (
+        {bookings.map((b: (typeof bookings)[number]) => (
           <Card key={b.id} className="flex items-center justify-between p-5">
             <div>
               <p className="font-medium text-noir">{b.service.name}</p>
@@ -47,7 +47,7 @@ export default async function ClientDashboard() {
 
       <h2 className="mt-10 font-display text-xl text-noir">Mes professionnels favoris</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {favorites.map((f) => (
+        {favorites.map((f: (typeof favorites)[number]) => (
           <Card key={f.salonId} className="p-5">
             <p className="font-medium text-noir">{f.salon.name}</p>
             <p className="text-sm text-noir/60">{f.salon.city}</p>

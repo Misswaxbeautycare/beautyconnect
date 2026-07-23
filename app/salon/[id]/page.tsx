@@ -21,7 +21,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
 
   if (!salon) notFound();
 
-  const bookedSlots = salon.bookings.map((b) => b.date.toISOString());
+  const bookedSlots = salon.bookings.map((b: (typeof salon.bookings)[number]) => b.date.toISOString());
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
@@ -30,7 +30,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
           <p className="mt-1 text-noir/60">{salon.city}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {salon.categories.map((c) => (
+            {salon.categories.map((c: (typeof salon.categories)[number]) => (
               <span key={c.categoryId} className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">
                 {c.category.name}
               </span>
@@ -40,7 +40,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
 
           <h2 className="mt-12 font-display text-xl text-noir">Avis</h2>
           <div className="mt-4 space-y-4">
-            {salon.reviews.map((r) => (
+            {salon.reviews.map((r: (typeof salon.reviews)[number]) => (
               <div key={r.id} className="border-b border-beige-dark pb-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-noir">
@@ -59,7 +59,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         <div>
           <BookingCalendar
             salonId={salon.id}
-            services={salon.services.map((s) => ({
+            services={salon.services.map((s: (typeof salon.services)[number]) => ({
               id: s.id,
               name: s.name,
               price: Number(s.price),

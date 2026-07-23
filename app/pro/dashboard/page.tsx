@@ -40,7 +40,7 @@ export default async function ProDashboard() {
       booking: { salonId: salon.id, date: { gte: startOfMonth(new Date()) } },
     },
   });
-  const monthlyRevenue = monthPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+  const monthlyRevenue = monthPayments.reduce((sum: number, p: (typeof monthPayments)[number]) => sum + Number(p.amount), 0);
 
   const newClientsCount = await prisma.booking.groupBy({
     by: ["clientId"],
@@ -73,7 +73,7 @@ export default async function ProDashboard() {
 
       <h2 className="mt-10 font-display text-xl text-noir">Rendez-vous du jour</h2>
       <div className="mt-4 space-y-3">
-        {salon.bookings.map((b) => (
+        {salon.bookings.map((b: (typeof salon.bookings)[number]) => (
           <Card key={b.id} className="flex items-center justify-between p-5">
             <div>
               <p className="font-medium text-noir">{b.client.firstName} {b.client.lastName}</p>
