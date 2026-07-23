@@ -1,75 +1,161 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import { CategoryGrid } from "@/components/CategoryGrid";
+import { prisma } from "@/lib/prisma";
+import { SalonCard } from "@/components/salon/SalonCard";
 
-export default function HomePage() {
+interface SearchParams {
+  categorie?: string;
+  ville?: string;
+}
+
+const CATEGORIES = [
+  { slug: "coiffeur", label: "Coiffeur", icon: "💇" },
+  { slug: "estheticienne", label: "Esthétique", icon: "✨" },
+  { slug: "barbier", label: "Barbier", icon: "🪒" },
+  { slug: "onglerie", label: "Onglerie", icon: "💅" },
+  { slug: "massage", label: "Massages", icon: "💆" },
+  { slug: "spa", label: "Spa et sauna", icon: "🧖" },
+  { slug: "extension-cils", label: "Sourcils et cils", icon: "👁" },
+  { slug: "epilation", label: "Épilations", icon: "🪞" },
+  { slug: "beaute-afro", label: "Beauté afro", icon: "🌀" },
+  { slug: "maquillage", label: "Maquillage", icon: "💄" },
+  { slug: "maquillage-permanent", label: "Maquillage permanent", icon: "🖊" },
+  { slug: "soins-corps", label: "Soins corps", icon: "🧴" },
+];
+
+export default async function RecherchePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+
+  const salons = await prisma.salon.findMany({
+    where: {
+      isActive: true,
+      isApproved: true,
+      ...(params.ville ? { city: { contains: params.ville, mode: "insensitive" } } : {}),
+      ...(params.categorie
+        ? { categories: { some: { category: { slug: params.categorie } } } }
+        : {}),
+    },
+    include: {
+      categories: { include: { category: true } },
+      services: { orderBy: { price: "asc" }, take: 1 },
+      reviews: true,
+    },
+    take: 24,
+  });
+
+  const [featured, ...rest] = salons;
+
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-noir">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(201,162,75,0.15),transparent_60%)]" />
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center md:py-32">
-          <p className="mb-4 text-xs uppercase tracking-[0.3em] text-or animate-fade-in">
-            Beauté · Bien-être · Style
-          </p>
-          <h1 className="font-display text-4xl leading-tight text-white md:text-6xl animate-slide-up">
-            Réservez. Connectez.
-            <br />
-            <span className="text-or">Rayonnez.</span>
-          </h1>
-          <p className="mt-6 max-w-xl text-beige/70 animate-slide-up" style={{ animationDelay: "150ms" }}>
-            Coiffure, esthétique, onglerie, spa, massage... Trouvez et réservez
-            votre professionnel beauté préféré, où que vous soyez.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4 animate-slide-up" style={{ animationDelay: "300ms" }}>
-            <Link href="/recherche">
-              <Button size="lg" variant="secondary">Trouver un professionnel</Button>
-            </Link>
-            <Link href="/register?type=pro">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-noir">
-                Je suis un professionnel
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+    <div className="mx-auto max-w-7xl px-6 py-12">
+      <div className="flex items-center gap-1.5 text-sm text-[#5a5142] mb-3">
+        <span className="text-[#a8792e]">📍</span> Position actuelle
+      </div>
+      <h1 className="font-display text-3xl text-noir">Trouvez votre expert beauté</h1>
+      <p className="mt-2 text-noir/60">
+        Coiffure, esthétique, onglerie, spa, massage... Réservez votre professionnel beauté préféré, où que vous soyez.
+      </p>
 
-      {/* Catégories */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="mb-10 text-center">
-          <h2 className="font-display text-3xl text-noir">Toutes les catégories beauté</h2>
-          <p className="mt-2 text-noir/60">Un professionnel pour chaque besoin</p>
-        </div>
-        <CategoryGrid />
-      </section>
+      <form className="mt-6 flex flex-wrap items-center gap-2 bg-[#f7efe0] rounded-full px-4 py-2 max-w-xl" method="get">
+        <span className="text-gray-400">🔍</span>
+        <input
+          name="ville"
+          defaultValue={params.ville}
+          placeholder="Recherchez tous les soins ou une ville"
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
+        />
+        <button className="rounded-full bg-[#c8a24a] px-5 py-2 text-sm font-semibold text-white hover:bg-[#a8792e]">
+          Rechercher
+        </button>
+      </form>
 
-      {/* Pourquoi nous */}
-      <section className="bg-beige py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-6 md:grid-cols-3">
-          {[
-            { title: "Réservation instantanée", desc: "Choisissez un créneau disponible et confirmez en 2 minutes." },
-            { title: "Paiement sécurisé", desc: "Acompte ou paiement complet via Stripe, en toute confiance." },
-            { title: "Avis vérifiés", desc: "Des avis authentiques laissés uniquement après un rendez-vous réel." },
-          ].map((f) => (
-            <div key={f.title} className="rounded-2xl bg-white p-8 shadow-sm">
-              <h3 className="font-display text-xl text-noir">{f.title}</h3>
-              <p className="mt-3 text-sm text-noir/60">{f.desc}</p>
-            </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {["Aujourd'hui", "Prix", "Distance", "Note 4.5+", "À domicile"].map((f) => (
+          <button
+            key={f}
+            type="button"
+            className="text-xs font-medium text-[#5a5142] border border-gray-200 rounded-full px-3.5 py-1.5"
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="font-display text-xl text-noir mb-4">Catégories</h2>
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
+          {CATEGORIES.map((cat) => (
+            <a
+              key={cat.slug}
+              href={`?categorie=${cat.slug}`}
+              className={`flex flex-col items-center gap-2 ${
+                params.categorie === cat.slug ? "opacity-100" : "opacity-90"
+              }`}
+            >
+              <span
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${
+                  params.categorie === cat.slug ? "bg-[#c8a24a]" : "bg-[#f7efe0]"
+                }`}
+              >
+                {cat.icon}
+              </span>
+              <span className="text-[11px] text-center text-gray-700 leading-tight">{cat.label}</span>
+            </a>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* CTA Pro */}
-      <section className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <h2 className="font-display text-3xl text-noir">Vous êtes un professionnel de la beauté ?</h2>
-        <p className="mx-auto mt-3 max-w-xl text-noir/60">
-          Développez votre activité, gérez votre agenda et vos paiements sur
-          Misswaxbeautycare.
-        </p>
-        <Link href="/register?type=pro">
-          <Button size="lg" className="mt-8">Créer mon salon</Button>
-        </Link>
-      </section>
+      <p className="mt-8 text-noir/60 text-sm">
+        {salons.length} professionnel{salons.length > 1 ? "s" : ""} disponible
+        {salons.length > 1 ? "s" : ""}
+        {params.categorie ? ` en ${params.categorie.replace("-", " ")}` : ""}
+      </p>
+
+      {featured && (
+        <div className="mt-6">
+          <h2 className="font-display text-xl text-noir mb-4">Recommandés</h2>
+          <div className="max-w-sm">
+            <SalonCardWithRating salon={featured} />
+          </div>
+        </div>
+      )}
+
+      <div className="mt-10">
+        <div className="flex justify-between items-baseline mb-4">
+          <h2 className="font-display text-xl text-noir">Établissements à proximité</h2>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {rest.map((s) => (
+            <SalonCardWithRating key={s.id} salon={s} />
+          ))}
+          {salons.length === 0 && (
+            <p className="col-span-full text-center text-noir/50 py-16">
+              Aucun professionnel trouvé pour cette recherche.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+function SalonCardWithRating({ salon: s }: { salon: any }) {
+  const ratingAvg =
+    s.reviews.length > 0
+      ? s.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / s.reviews.length
+      : undefined;
+
+  return (
+    <SalonCard
+      id={s.id}
+      name={s.name}
+      city={s.city}
+      coverUrl={s.coverUrl}
+      categories={s.categories.map((c: { category: { name: string } }) => c.category.name)}
+      ratingAvg={ratingAvg}
+      reviewCount={s.reviews.length}
+      fromPrice={s.services[0] ? Number(s.services[0].price) : undefined}
+    />
   );
 }
