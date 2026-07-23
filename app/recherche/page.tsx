@@ -1,21 +1,30 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Star, Search } from "lucide-react";
+import {
+  Search,
+  Grid3x3,
+  Scissors,
+  Sparkles,
+  Hand,
+  Eye,
+  Palette,
+  Waves,
+  Flower2,
+  Gem,
+  Star,
+} from "lucide-react";
+import { LocationPicker } from "@/components/search/LocationPicker";
 
 const categories = [
-  { slug: "coiffeur", label: "Coiffeur", icon: "💇" },
-  { slug: "estheticienne", label: "Esthéticienne", icon: "✨" },
-  { slug: "barbier", label: "Barbier", icon: "🪒" },
-  { slug: "maquilleur", label: "Maquilleur", icon: "💄" },
-  { slug: "onglerie", label: "Onglerie", icon: "💅" },
-  { slug: "massage", label: "Massage", icon: "💆" },
-  { slug: "spa", label: "Spa", icon: "🧖" },
-  { slug: "extension-cils", label: "Extension de cils", icon: "👁️" },
-  { slug: "epilation", label: "Épilation", icon: "✨" },
-  { slug: "soins-visage", label: "Soins visage", icon: "🧴" },
-  { slug: "soins-corps", label: "Soins corps", icon: "🛁" },
-  { slug: "beaute-afro", label: "Beauté afro", icon: "🌀" },
-  { slug: "maquillage-permanent", label: "Maquillage permanent", icon: "💉" },
+  { slug: null, label: "Tous", icon: Grid3x3 },
+  { slug: "coiffeur", label: "Coiffeur", icon: Scissors },
+  { slug: "estheticienne", label: "Esthéticienne", icon: Sparkles },
+  { slug: "onglerie", label: "Onglerie", icon: Hand },
+  { slug: "extension-cils", label: "Sourcils et cils", icon: Eye },
+  { slug: "maquillage-permanent", label: "Maquillage", icon: Palette },
+  { slug: "spa", label: "Spa", icon: Waves },
+  { slug: "beaute-afro", label: "Beauté afro", icon: Flower2 },
+  { slug: "soins-visage", label: "Soins visage", icon: Gem },
 ];
 
 interface RecherchePageProps {
@@ -77,54 +86,62 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
   return (
     <main className="min-h-screen bg-white text-black">
-      <header className="flex items-center justify-between px-6 py-5 border-b border-neutral-200">
-        <Link href="/" className="text-2xl font-serif">
-          Beauty<span className="text-amber-500">Connect</span>
-        </Link>
+      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+        <LocationPicker />
         <Link
-          href="/recherche"
-          className="rounded-full bg-black text-white px-6 py-2.5 font-medium hover:bg-neutral-800 transition"
+          href="/"
+          className="h-11 w-11 flex items-center justify-center rounded-full bg-neutral-900 text-white"
         >
-          Réserver
+          <Grid3x3 size={18} />
         </Link>
-      </header>
+      </div>
 
-      <section className="px-6 py-6">
-        <form className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-3">
-          <Search size={18} className="text-neutral-400" />
+      <div className="px-6 pb-6">
+        <form className="flex items-center gap-3 rounded-full border border-neutral-200 pl-5 pr-1.5 py-1.5 shadow-sm">
+          <Search size={18} className="text-neutral-400 shrink-0" />
           <input
             type="text"
             name="q"
             defaultValue={q}
-            placeholder="Rechercher un salon, une prestation..."
-            className="flex-1 outline-none text-sm bg-transparent"
+            placeholder="Recherchez tous les soins"
+            className="flex-1 outline-none text-sm bg-transparent placeholder:text-neutral-400"
           />
+          <button
+            type="submit"
+            className="rounded-full bg-neutral-900 text-white px-6 py-3 text-sm font-semibold shrink-0"
+          >
+            Rechercher
+          </button>
         </form>
-      </section>
+      </div>
 
-      <section className="px-6 pb-6">
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {categories.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={`/recherche?categorie=${cat.slug}`}
-              className={`flex flex-col items-center gap-1 rounded-2xl px-4 py-3 min-w-[90px] text-center transition ${
-                categorie === cat.slug
-                  ? "bg-black text-white"
-                  : "bg-[#F5EFE6] hover:bg-[#EFE4D3]"
-              }`}
-            >
-              <span className="text-xl">{cat.icon}</span>
-              <span className="text-xs">{cat.label}</span>
-            </Link>
-          ))}
+      <section className="px-6 pb-8">
+        <div className="grid grid-cols-4 gap-3">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = categorie === cat.slug || (!categorie && !cat.slug);
+            return (
+              <Link
+                key={cat.label}
+                href={cat.slug ? `/recherche?categorie=${cat.slug}` : "/recherche"}
+                className={`flex flex-col items-center gap-2 rounded-2xl py-5 px-2 text-center transition ${
+                  isActive
+                    ? "bg-neutral-900 text-white"
+                    : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                }`}
+              >
+                <Icon size={22} />
+                <span className="text-xs leading-tight">{cat.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
       {recommandes.length > 0 && (
         <section className="px-6 pb-10">
-          <h2 className="text-xl font-serif mb-4">Recommandés</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2">
+          <h2 className="text-2xl font-bold mb-4">Recommandés</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 snap-x">
             {recommandes.map((salon) => (
               <SalonCard key={salon.id} salon={salon} />
             ))}
@@ -133,7 +150,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
       )}
 
       <section className="px-6 pb-14">
-        <h2 className="text-xl font-serif mb-4">Établissements à proximité</h2>
+        <h2 className="text-xl font-bold mb-4">Établissements à proximité</h2>
         {aProximite.length === 0 && recommandes.length === 0 ? (
           <p className="text-neutral-500 text-sm">
             Aucun salon trouvé pour cette recherche.
@@ -164,27 +181,29 @@ function SalonCard({ salon }: { salon: SalonLite }) {
   return (
     <Link
       href={`/salon/${salon.id}`}
-      className="min-w-[220px] rounded-2xl overflow-hidden border border-neutral-200 hover:shadow-md transition"
+      className="min-w-[280px] max-w-[280px] rounded-2xl overflow-hidden snap-start relative"
     >
       <div
-        className="h-32 bg-neutral-800 bg-cover bg-center"
+        className="h-56 bg-neutral-800 bg-cover bg-center relative"
         style={{
           backgroundImage: salon.coverUrl ? `url(${salon.coverUrl})` : undefined,
         }}
-      />
-      <div className="p-3">
+      >
+        <span className="absolute top-3 left-3 bg-white/95 text-xs font-semibold px-3 py-1.5 rounded-full">
+          À la une
+        </span>
+      </div>
+      <div className="pt-3">
         <div className="flex items-center justify-between">
           <span className="font-semibold truncate">{salon.name}</span>
           {salon.note != null && (
-            <span className="flex items-center gap-1 text-amber-500 text-sm shrink-0">
-              <Star size={14} fill="currentColor" /> {salon.note.toFixed(1)}
+            <span className="flex items-center gap-1 text-sm shrink-0">
+              <Star size={14} className="text-amber-500" fill="currentColor" />{" "}
+              {salon.note.toFixed(1)}
             </span>
           )}
         </div>
         <p className="text-sm text-neutral-500">{salon.city}</p>
-        <p className="text-xs text-neutral-400">
-          {salon.categorieLabel} · {salon.nombreAvis} avis
-        </p>
       </div>
     </Link>
   );
