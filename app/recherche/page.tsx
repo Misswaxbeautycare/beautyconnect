@@ -7,18 +7,18 @@ interface SearchParams {
 }
 
 const CATEGORIES = [
-  { slug: "coiffeur", label: "Coiffeur", icon: "💇" },
-  { slug: "estheticienne", label: "Esthétique", icon: "✨" },
-  { slug: "barbier", label: "Barbier", icon: "🪒" },
-  { slug: "onglerie", label: "Onglerie", icon: "💅" },
-  { slug: "massage", label: "Massages", icon: "💆" },
-  { slug: "spa", label: "Spa et sauna", icon: "🧖" },
-  { slug: "extension-cils", label: "Sourcils et cils", icon: "👁️" },
-  { slug: "epilation", label: "Épilations", icon: "🪞" },
-  { slug: "beaute-afro", label: "Beauté afro", icon: "🌀" },
-  { slug: "maquillage", label: "Maquillage", icon: "💄" },
-  { slug: "maquillage-permanent", label: "Maquillage permanent", icon: "🖊️" },
-  { slug: "soins-corps", label: "Soins corps", icon: "🧴" },
+  { slug: "coiffeur", label: "Coiffeur", icon: "•" },
+  { slug: "estheticienne", label: "Esthétique", icon: "•" },
+  { slug: "barbier", label: "Barbier", icon: "•" },
+  { slug: "onglerie", label: "Onglerie", icon: "•" },
+  { slug: "massage", label: "Massages", icon: "•" },
+  { slug: "spa", label: "Spa et sauna", icon: "•" },
+  { slug: "extension-cils", label: "Sourcils et cils", icon: "•" },
+  { slug: "epilation", label: "Épilations", icon: "•" },
+  { slug: "beaute-afro", label: "Beauté afro", icon: "•" },
+  { slug: "maquillage", label: "Maquillage", icon: "•" },
+  { slug: "maquillage-permanent", label: "Maquillage permanent", icon: "•" },
+  { slug: "soins-corps", label: "Soins corps", icon: "•" },
 ];
 
 export default async function RecherchePage({
@@ -50,7 +50,7 @@ export default async function RecherchePage({
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
       <div className="flex items-center gap-1.5 text-sm text-[#5a5142] mb-3">
-        <span className="text-[#a8792e]">📍</span> Position actuelle
+        <span className="text-[#a8792e]">Position</span> actuelle
       </div>
       <h1 className="font-display text-3xl text-noir">Trouvez votre expert beauté</h1>
       <p className="mt-2 text-noir/60">
@@ -58,7 +58,6 @@ export default async function RecherchePage({
       </p>
 
       <form className="mt-6 flex flex-wrap items-center gap-2 bg-[#f7efe0] rounded-full px-4 py-2 max-w-xl" method="get">
-        <span className="text-gray-400">🔍</span>
         <input
           name="ville"
           defaultValue={params.ville}
