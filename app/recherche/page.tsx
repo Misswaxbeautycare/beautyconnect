@@ -3,36 +3,20 @@ import Link from "next/link";
 import { Star, Search } from "lucide-react";
 
 const categories = [
-  "Coiffeur",
-  "Esthéticienne",
-  "Barbier",
-  "Maquilleur",
-  "Onglerie",
-  "Massage",
-  "Spa",
-  "Extension de cils",
-  "Épilation",
-  "Soins visage",
-  "Soins corps",
-  "Beauté afro",
-  "Maquillage permanent",
+  { slug: "coiffeur", label: "Coiffeur", icon: "💇" },
+  { slug: "estheticienne", label: "Esthéticienne", icon: "✨" },
+  { slug: "barbier", label: "Barbier", icon: "🪒" },
+  { slug: "maquilleur", label: "Maquilleur", icon: "💄" },
+  { slug: "onglerie", label: "Onglerie", icon: "💅" },
+  { slug: "massage", label: "Massage", icon: "💆" },
+  { slug: "spa", label: "Spa", icon: "🧖" },
+  { slug: "extension-cils", label: "Extension de cils", icon: "👁️" },
+  { slug: "epilation", label: "Épilation", icon: "✨" },
+  { slug: "soins-visage", label: "Soins visage", icon: "🧴" },
+  { slug: "soins-corps", label: "Soins corps", icon: "🛁" },
+  { slug: "beaute-afro", label: "Beauté afro", icon: "🌀" },
+  { slug: "maquillage-permanent", label: "Maquillage permanent", icon: "💉" },
 ];
-
-const categoryIcons: Record<string, string> = {
-  Coiffeur: "💇",
-  Esthéticienne: "✨",
-  Barbier: "🪒",
-  Maquilleur: "💄",
-  Onglerie: "💅",
-  Massage: "💆",
-  Spa: "🧖",
-  "Extension de cils": "👁️",
-  Épilation: "✨",
-  "Soins visage": "🧴",
-  "Soins corps": "🛁",
-  "Beauté afro": "🌀",
-  "Maquillage permanent": "💉",
-};
 
 interface RecherchePageProps {
   searchParams: Promise<{
@@ -45,24 +29,48 @@ interface RecherchePageProps {
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
   const { q, categorie, ville } = await searchParams;
 
-  const salons = await prisma.salon.findMany({
+  const salonsRaw = await prisma.salon.findMany({
     where: {
+      isActive: true,
       AND: [
         q
           ? {
               OR: [
-                { nom: { contains: q, mode: "insensitive" } },
-                { ville: { contains: q, mode: "insensitive" } },
+                { name: { contains: q, mode: "insensitive" } },
+                { city: { contains: q, mode: "insensitive" } },
               ],
             }
           : {},
-        categorie ? { categorie: { equals: categorie } } : {},
-        ville ? { ville: { contains: ville, mode: "insensitive" } } : {},
+        categorie
+          ? { categories: { some: { category: { slug: categorie } } } }
+          : {},
+        ville ? { city: { contains: ville, mode: "insensitive" } } : {},
       ],
     },
-    orderBy: { note: "desc" },
+    include: {
+      categories: { include: { category: true } },
+      reviews: { select: { rating: true } },
+    },
     take: 30,
   });
+
+  const salons = salonsRaw
+    .map((salon) => {
+      const noteMoyenne =
+        salon.reviews.length > 0
+          ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
+          : null;
+      return {
+        id: salon.id,
+        name: salon.name,
+        city: salon.city,
+        coverUrl: salon.coverUrl,
+        categorieLabel: salon.categories[0]?.category.name ?? "",
+        note: noteMoyenne,
+        nombreAvis: salon.reviews.length,
+      };
+    })
+    .sort((a, b) => (b.note ?? 0) - (a.note ?? 0));
 
   const recommandes = salons.slice(0, 6);
   const aProximite = salons.slice(6);
@@ -98,16 +106,16 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         <div className="flex gap-3 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <Link
-              key={cat}
-              href={`/recherche?categorie=${encodeURIComponent(cat)}`}
+              key={cat.slug}
+              href={`/recherche?categorie=${cat.slug}`}
               className={`flex flex-col items-center gap-1 rounded-2xl px-4 py-3 min-w-[90px] text-center transition ${
-                categorie === cat
+                categorie === cat.slug
                   ? "bg-black text-white"
                   : "bg-[#F5EFE6] hover:bg-[#EFE4D3]"
               }`}
             >
-              <span className="text-xl">{categoryIcons[cat]}</span>
-              <span className="text-xs">{cat}</span>
+              <span className="text-xl">{cat.icon}</span>
+              <span className="text-xs">{cat.label}</span>
             </Link>
           ))}
         </div>
@@ -144,12 +152,12 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
 type SalonLite = {
   id: string;
-  nom: string;
-  ville: string | null;
-  categorie: string | null;
+  name: string;
+  city: string;
+  coverUrl: string | null;
+  categorieLabel: string;
   note: number | null;
-  nombreAvis: number | null;
-  photoCouverture: string | null;
+  nombreAvis: number;
 };
 
 function SalonCard({ salon }: { salon: SalonLite }) {
@@ -161,23 +169,21 @@ function SalonCard({ salon }: { salon: SalonLite }) {
       <div
         className="h-32 bg-neutral-800 bg-cover bg-center"
         style={{
-          backgroundImage: salon.photoCouverture
-            ? `url(${salon.photoCouverture})`
-            : undefined,
+          backgroundImage: salon.coverUrl ? `url(${salon.coverUrl})` : undefined,
         }}
       />
       <div className="p-3">
         <div className="flex items-center justify-between">
-          <span className="font-semibold truncate">{salon.nom}</span>
+          <span className="font-semibold truncate">{salon.name}</span>
           {salon.note != null && (
             <span className="flex items-center gap-1 text-amber-500 text-sm shrink-0">
               <Star size={14} fill="currentColor" /> {salon.note.toFixed(1)}
             </span>
           )}
         </div>
-        <p className="text-sm text-neutral-500">{salon.ville}</p>
+        <p className="text-sm text-neutral-500">{salon.city}</p>
         <p className="text-xs text-neutral-400">
-          {salon.categorie} · {salon.nombreAvis ?? 0} avis
+          {salon.categorieLabel} · {salon.nombreAvis} avis
         </p>
       </div>
     </Link>
@@ -193,23 +199,21 @@ function SalonRow({ salon }: { salon: SalonLite }) {
       <div
         className="h-20 w-20 rounded-xl bg-neutral-800 bg-cover bg-center shrink-0"
         style={{
-          backgroundImage: salon.photoCouverture
-            ? `url(${salon.photoCouverture})`
-            : undefined,
+          backgroundImage: salon.coverUrl ? `url(${salon.coverUrl})` : undefined,
         }}
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
-          <span className="font-semibold truncate">{salon.nom}</span>
+          <span className="font-semibold truncate">{salon.name}</span>
           {salon.note != null && (
             <span className="flex items-center gap-1 text-amber-500 text-sm shrink-0">
               <Star size={14} fill="currentColor" /> {salon.note.toFixed(1)}
             </span>
           )}
         </div>
-        <p className="text-sm text-neutral-500">{salon.ville}</p>
+        <p className="text-sm text-neutral-500">{salon.city}</p>
         <p className="text-xs text-neutral-400">
-          {salon.categorie} · {salon.nombreAvis ?? 0} avis
+          {salon.categorieLabel} · {salon.nombreAvis} avis
         </p>
       </div>
     </Link>
