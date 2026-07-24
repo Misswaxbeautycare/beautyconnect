@@ -28,7 +28,7 @@ export default async function ProDashboard() {
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <h1 className="font-display text-2xl text-noir">Créez votre salon</h1>
         <p className="mt-2 text-noir/60">
-          Vous n'avez pas encore configuré votre espace professionnel.
+          Vous n&apos;avez pas encore configuré votre espace professionnel.
         </p>
       </div>
     );
@@ -49,12 +49,22 @@ export default async function ProDashboard() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
-      <p className="mt-1 text-noir/60">Tableau de bord professionnel</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
+          <p className="mt-1 text-noir/60">Tableau de bord professionnel</p>
+        </div>
+        
+          href="/pro/agenda"
+          className="rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
+        >
+          Voir l&apos;agenda complet
+        </a>
+      </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
         <Card className="p-5">
-          <p className="text-xs uppercase tracking-wide text-noir/50">RDV aujourd'hui</p>
+          <p className="text-xs uppercase tracking-wide text-noir/50">RDV aujourd&apos;hui</p>
           <p className="mt-2 font-display text-2xl text-noir">{salon.bookings.length}</p>
         </Card>
         <Card className="p-5">
@@ -73,16 +83,21 @@ export default async function ProDashboard() {
 
       <h2 className="mt-10 font-display text-xl text-noir">Rendez-vous du jour</h2>
       <div className="mt-4 space-y-3">
-        {salon.bookings.map((b: (typeof salon.bookings)[number]) => (
-          <Card key={b.id} className="flex items-center justify-between p-5">
-            <div>
-              <p className="font-medium text-noir">{b.client.firstName} {b.client.lastName}</p>
-              <p className="text-sm text-noir/60">{b.service.name} — {formatDate(b.date)}</p>
-            </div>
-            <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
-          </Card>
-        ))}
-        {salon.bookings.length === 0 && <p className="text-noir/40">Aucun rendez-vous aujourd'hui.</p>}
+        {salon.bookings.map((b: (typeof salon.bookings)[number]) => {
+          const nomClient = b.client
+            ? `${b.client.firstName} ${b.client.lastName}`
+            : b.guestName ?? "Client sans nom";
+          return (
+            <Card key={b.id} className="flex items-center justify-between p-5">
+              <div>
+                <p className="font-medium text-noir">{nomClient}</p>
+                <p className="text-sm text-noir/60">{b.service.name} — {formatDate(b.date)}</p>
+              </div>
+              <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
+            </Card>
+          );
+        })}
+        {salon.bookings.length === 0 && <p className="text-noir/40">Aucun rendez-vous aujourd&apos;hui.</p>}
       </div>
     </div>
   );
