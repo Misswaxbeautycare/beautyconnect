@@ -1,5 +1,6 @@
 // ============================================================
-// Misswaxbeautycare — Schéma de base de données
+// BeautyConnect — Schéma de base de données
+// (powered by Misswaxbeautycare)
 // ============================================================
 
 generator client {
@@ -217,8 +218,14 @@ model Service {
 
 model Booking {
   id          String        @id @default(uuid())
-  clientId    String
-  client      User          @relation(fields: [clientId], references: [id])
+
+  clientId    String?
+  client      User?         @relation(fields: [clientId], references: [id])
+
+  guestName   String?
+  guestPhone  String?
+  guestEmail  String?
+
   salonId     String
   salon       Salon         @relation(fields: [salonId], references: [id])
   serviceId   String
