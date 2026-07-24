@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { startOfMonth, startOfDay, endOfDay } from "date-fns";
@@ -54,12 +55,12 @@ export default async function ProDashboard() {
           <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
           <p className="mt-1 text-noir/60">Tableau de bord professionnel</p>
         </div>
-        
+        <Link
           href="/pro/agenda"
           className="rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
         >
           Voir l&apos;agenda complet
-        </a>
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
