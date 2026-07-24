@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { resend } from "@/lib/resend";
+import { getResend } from "@/lib/resend";
 import { addHours, addMinutes } from "date-fns";
 
 // Sécurise cette route : seul Vercel Cron (avec le bon secret) peut la déclencher
@@ -35,7 +35,7 @@ async function envoyerRappel(
     minute: "2-digit",
   });
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: "BeautyConnect <rappels@beautyconnect.be>",
     to: email,
     subject: `Rappel : votre rendez-vous ${delaiTexte}`,
