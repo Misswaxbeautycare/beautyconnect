@@ -35,51 +35,70 @@ interface RecherchePageProps {
   }>;
 }
 
+type SalonLite = {
+  id: string;
+  name: string;
+  city: string;
+  coverUrl: string | null;
+  categorieLabel: string;
+  note: number | null;
+  nombreAvis: number;
+};
+
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
   const { q, categorie, ville } = await searchParams;
 
-  const salonsRaw = await prisma.salon.findMany({
-    where: {
-      isActive: true,
-      AND: [
-        q
-          ? {
-              OR: [
-                { name: { contains: q, mode: "insensitive" } },
-                { city: { contains: q, mode: "insensitive" } },
-              ],
-            }
-          : {},
-        categorie
-          ? { categories: { some: { category: { slug: categorie } } } }
-          : {},
-        ville ? { city: { contains: ville, mode: "insensitive" } } : {},
-      ],
-    },
-    include: {
-      categories: { include: { category: true } },
-      reviews: { select: { rating: true } },
-    },
-    take: 30,
-  });
+  let salons: SalonLite[] = [];
+  let errorMessage: string | null = null;
 
-  const salons = salonsRaw
-    .map((salon) => {
-      const noteMoyenne =
-        salon.reviews.length > 0
-          ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
-          : null;
-      return {
-        id: salon.id,
-        name: salon.name,
-        city: salon.city,
-        coverUrl: salon.coverUrl,
-        categorieLabel: salon.categories[0]?.category.name ?? "",
-        note: noteMoyenne,
-        nombreAvis: salon.reviews.length,
-      };
-    })
-    .sort((a, b) => (b.note ?? 0) - (a.note ?? 0));
+  try {
+    const salonsRaw = await prisma.salon.findMany({
+      where: {
+        isActive: true,
+        AND: [
+          q
+            ? {
+                OR: [
+                  { name: { contains: q, mode: "insensitive" } },
+                  { city: { contains: q, mode: "insensitive" } },
+                ],
+              }
+            : {},
+          categorie
+            ? { categories: { some: { category: { slug: categorie } } } }
+            : {},
+          ville ? { city: { contains: ville, mode: "insensitive" } } : {},
+        ],
+      },
+      include: {
+        categories: { include: { category: true } },
+        reviews: { select: { rating: true } },
+      },
+      take: 30,
+    });
+
+    salons = salonsRaw
+      .map((salon) => {
+        const noteMoyenne =
+          salon.reviews.length > 0
+            ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
+            : null;
+        return {
+          id: salon.id,
+          name: salon.name,
+          city: salon.city,
+          coverUrl: salon.coverUrl,
+          categorieLabel: salon.categories[0]?.category.name ?? "",
+          note: noteMoyenne,
+          nombreAvis: salon.reviews.length,
+        };
+      })
+      .sort((a, b) => (b.note ?? 0) - (a.note ?? 0));
+  } catch (err) {
+    console.error("[/recherche] Erreur Prisma:", err);
+    errorMessage =
+      err instanceof Error ? err.message : "Erreur inconnue lors de la récupération des salons.";
+  }
 
   const recommandes = salons.slice(0, 6);
   const aProximite = salons.slice(6);
@@ -138,7 +157,16 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         </div>
       </section>
 
-      {recommandes.length > 0 && (
+      {errorMessage && (
+        <section className="px-6 pb-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <p className="font-semibold mb-1">Erreur lors du chargement des salons</p>
+            <p className="break-words">{errorMessage}</p>
+          </div>
+        </section>
+      )}
+
+      {!errorMessage && recommandes.length > 0 && (
         <section className="px-6 pb-10">
           <h2 className="text-2xl font-bold mb-4">Recommandés</h2>
           <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 snap-x">
@@ -149,33 +177,25 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         </section>
       )}
 
-      <section className="px-6 pb-14">
-        <h2 className="text-xl font-bold mb-4">Établissements à proximité</h2>
-        {aProximite.length === 0 && recommandes.length === 0 ? (
-          <p className="text-neutral-500 text-sm">
-            Aucun salon trouvé pour cette recherche.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {(aProximite.length > 0 ? aProximite : recommandes).map((salon) => (
-              <SalonRow key={salon.id} salon={salon} />
-            ))}
-          </div>
-        )}
-      </section>
+      {!errorMessage && (
+        <section className="px-6 pb-14">
+          <h2 className="text-xl font-bold mb-4">Établissements à proximité</h2>
+          {aProximite.length === 0 && recommandes.length === 0 ? (
+            <p className="text-neutral-500 text-sm">
+              Aucun salon trouvé pour cette recherche.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {(aProximite.length > 0 ? aProximite : recommandes).map((salon) => (
+                <SalonRow key={salon.id} salon={salon} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }
-
-type SalonLite = {
-  id: string;
-  name: string;
-  city: string;
-  coverUrl: string | null;
-  categorieLabel: string;
-  note: number | null;
-  nombreAvis: number;
-};
 
 function SalonCard({ salon }: { salon: SalonLite }) {
   return (
