@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Star, CalendarCheck, ShieldCheck, MessageSquareText } from "lucide-react";
+import { Star, CalendarCheck, ShieldCheck, MessageSquareText, Search } from "lucide-react";
 
 const categories = [
   { name: "Coiffeur", icon: "💇" },
@@ -19,48 +19,59 @@ const categories = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-white text-black">
-      <header className="flex items-center justify-between px-6 py-5 border-b border-neutral-200">
-        <span className="text-2xl font-serif">
-          Beauty<span className="text-amber-500">Connect</span>
-        </span>
-        <Link
-          href="/recherche"
-          className="rounded-full bg-black text-white px-6 py-2.5 font-medium hover:bg-neutral-800 transition"
-        >
-          Réserver
-        </Link>
-      </header>
-
-      <section className="px-6 py-16 text-center bg-gradient-to-b from-neutral-950 to-neutral-800 text-white">
-        <p className="tracking-widest text-amber-400 text-xs font-semibold mb-4">
+    <>
+      {/* Hero — fond clair, plus de noir */}
+      <section className="px-6 py-16 text-center bg-[#F9F6F0]">
+        <p className="tracking-widest text-amber-600 text-xs font-semibold mb-4">
           BEAUTÉ · BIEN-ÊTRE · STYLE
         </p>
-        <h1 className="text-3xl md:text-4xl font-serif mb-4 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-serif mb-4 leading-tight text-neutral-900">
           Réservez. Connectez.
           <br />
-          <span className="text-amber-300">Rayonnez.</span>
+          <span className="text-amber-600">Rayonnez.</span>
         </h1>
-        <p className="text-neutral-300 mb-8 max-w-md mx-auto">
+        <p className="text-neutral-500 mb-8 max-w-md mx-auto">
           Coiffure, esthétique, onglerie, spa, massage... Trouvez et réservez
           votre professionnel beauté préféré, où que vous soyez.
         </p>
+
+        {/* Barre de recherche pilule */}
+        <form
+          action="/recherche"
+          className="flex items-center gap-3 rounded-full border border-neutral-200 bg-white pl-5 pr-1.5 py-1.5 shadow-sm max-w-lg mx-auto mb-8"
+        >
+          <Search size={18} className="text-neutral-400 shrink-0" />
+          <input
+            type="text"
+            name="q"
+            placeholder="Recherchez tous les soins"
+            className="flex-1 outline-none text-sm bg-transparent placeholder:text-neutral-400"
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-neutral-900 text-white px-6 py-3 text-sm font-semibold shrink-0"
+          >
+            Rechercher
+          </button>
+        </form>
+
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/recherche"
-            className="rounded-full bg-amber-400 text-neutral-900 px-8 py-3.5 font-semibold hover:bg-amber-300 transition"
+            className="rounded-full bg-neutral-900 text-white px-8 py-3.5 font-semibold hover:bg-neutral-800 transition"
           >
             Trouver un professionnel
           </Link>
           <Link
             href="/pro/inscription"
-            className="rounded-full border border-white/40 text-white px-8 py-3.5 font-semibold hover:bg-white/10 transition"
+            className="rounded-full border border-neutral-300 text-neutral-800 px-8 py-3.5 font-semibold hover:bg-neutral-100 transition"
           >
             Je suis un professionnel
           </Link>
         </div>
       </section>
 
+      {/* Catégories */}
       <section className="px-6 py-14">
         <h2 className="text-2xl font-serif text-center mb-1">
           Toutes les catégories beauté
@@ -82,6 +93,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Pourquoi BeautyConnect */}
       <section className="px-6 py-14 bg-[#F9F6F0]">
         <div className="grid gap-6 max-w-2xl mx-auto">
           <FeatureCard
@@ -102,6 +114,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Recommandés */}
       <section className="px-6 py-14">
         <h2 className="text-xl font-serif mb-5">Recommandés</h2>
         <div className="flex gap-4 overflow-x-auto pb-2">
@@ -120,52 +133,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="bg-neutral-950 text-neutral-300">
-        <div className="px-6 py-16 text-center border-b border-white/10">
-          <h2 className="text-2xl font-serif mb-3 text-white">
-            Vous êtes un professionnel de la beauté ?
-          </h2>
-          <p className="text-neutral-300 mb-8 max-w-md mx-auto">
-            Développez votre activité, gérez votre agenda et vos paiements sur
-            Misswaxbeautycare.
-          </p>
-          <Link
-            href="/pro/inscription"
-            className="inline-block rounded-full bg-amber-400 text-neutral-900 px-10 py-3.5 font-semibold hover:bg-amber-300 transition"
-          >
-            Créer mon salon
-          </Link>
-        </div>
-
-        <div className="px-6 py-10">
-          <h3 className="text-white text-xl font-serif mb-1">Beauty Connect</h3>
-          <p className="text-neutral-500 text-sm mb-1">Powered by Misswaxbeautycare</p>
-          <p className="mb-6">Réservez. Connectez. Rayonnez.</p>
-
-          <div className="grid grid-cols-1 gap-6 text-sm">
-            <div>
-              <p className="text-amber-500 font-semibold mb-2">Clientes</p>
-              <p className="mb-1">Trouver un professionnel</p>
-              <p>Créer un compte</p>
-            </div>
-            <div>
-              <p className="text-amber-500 font-semibold mb-2">Professionnels</p>
-              <p className="mb-1">Gérer mon salon</p>
-              <p>Rejoindre la plateforme</p>
-            </div>
-            <div>
-              <p className="text-amber-500 font-semibold mb-2">Misswaxbeautycare</p>
-              <p className="mb-1">À propos</p>
-              <p>Contact</p>
-            </div>
-          </div>
-
-          <p className="text-neutral-600 text-xs mt-10">
-            © 2026 Beauty Connect — Tous droits réservés
-          </p>
-        </div>
-      </footer>
-    </main>
+      {/* CTA Pro — fond clair, séparé du footer par de l'espace */}
+      <section className="px-6 py-16 mb-8 text-center bg-[#F5EFE6] mx-6 rounded-3xl">
+        <h2 className="text-2xl font-serif mb-3 text-neutral-900">
+          Vous êtes un professionnel de la beauté ?
+        </h2>
+        <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+          Développez votre activité, gérez votre agenda et vos paiements sur
+          Misswaxbeautycare.
+        </p>
+        <Link
+          href="/pro/inscription"
+          className="inline-block rounded-full bg-neutral-900 text-white px-10 py-3.5 font-semibold hover:bg-neutral-800 transition"
+        >
+          Créer mon salon
+        </Link>
+      </section>
+    </>
   );
 }
 
