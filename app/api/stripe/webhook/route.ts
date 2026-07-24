@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       });
 
       const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
-      if (booking) {
+      if (booking && booking.clientId) {
         await prisma.notification.create({
           data: {
             userId: booking.clientId,
