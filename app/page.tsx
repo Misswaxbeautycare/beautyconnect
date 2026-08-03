@@ -1,150 +1,169 @@
 import Link from "next/link";
-import { Star, CalendarCheck, ShieldCheck, MessageSquareText, Search } from "lucide-react";
+import { CalendarCheck, ShieldCheck, MessageSquareText, Search } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import { categories } from "@/lib/categories";
+import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
 
-const categories = [
-  { name: "Coiffeur", icon: "💇" },
-  { name: "Esthéticienne", icon: "✨" },
-  { name: "Barbier", icon: "🪒" },
-  { name: "Maquilleur", icon: "💄" },
-  { name: "Onglerie", icon: "💅" },
-  { name: "Massage", icon: "💆" },
-  { name: "Spa", icon: "🧖" },
-  { name: "Extension de cils", icon: "👁️" },
-  { name: "Épilation", icon: "✨" },
-  { name: "Soins visage", icon: "🧴" },
-  { name: "Soins corps", icon: "🛁" },
-  { name: "Beauté afro", icon: "🌀" },
-  { name: "Maquillage permanent", icon: "💉" },
-];
+async function getRecommandes(): Promise<SalonCardData[]> {
+  try {
+    const salonsRaw = await prisma.salon.findMany({
+      where: { isActive: true, isApproved: true },
+      include: {
+        categories: { include: { category: true } },
+        reviews: { select: { rating: true } },
+      },
+      take: 20,
+    });
 
-export default function HomePage() {
+    return salonsRaw
+      .map((salon) => {
+        const noteMoyenne =
+          salon.reviews.length > 0
+            ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
+            : null;
+        return {
+          id: salon.id,
+          name: salon.name,
+          city: salon.city,
+          coverUrl: salon.coverUrl,
+          categorieLabel: salon.categories[0]?.category.name ?? "",
+          note: noteMoyenne,
+          nombreAvis: salon.reviews.length,
+        };
+      })
+      .sort((a, b) => (b.note ?? 0) - (a.note ?? 0))
+      .slice(0, 6);
+  } catch (err) {
+    // Dégradation silencieuse : la page d'accueil reste utilisable même si
+    // la base est momentanément indisponible, on masque juste cette section.
+    console.error("[/] Erreur lors du chargement des salons recommandés:", err);
+    return [];
+  }
+}
+
+export default async function HomePage() {
+  const recommandes = await getRecommandes();
+
   return (
     <>
-      {/* Hero — fond clair, plus de noir */}
-      <section className="px-6 py-16 text-center bg-[#F9F6F0]">
-        <p className="tracking-widest text-amber-600 text-xs font-semibold mb-4">
+      <section className="bg-beige px-6 py-16 text-center">
+        <p className="mb-4 text-xs font-semibold tracking-widest text-or-dark">
           BEAUTÉ · BIEN-ÊTRE · STYLE
         </p>
-        <h1 className="text-3xl md:text-4xl font-serif mb-4 leading-tight text-neutral-900">
+        <h1 className="mb-4 font-display text-3xl leading-tight text-noir md:text-4xl">
           Réservez. Connectez.
           <br />
-          <span className="text-amber-600">Rayonnez.</span>
+          <span className="text-or-dark">Rayonnez.</span>
         </h1>
-        <p className="text-neutral-500 mb-8 max-w-md mx-auto">
+        <p className="mx-auto mb-8 max-w-md text-noir/60">
           Coiffure, esthétique, onglerie, spa, massage... Trouvez et réservez
           votre professionnel beauté préféré, où que vous soyez.
         </p>
 
-        {/* Barre de recherche pilule */}
         <form
           action="/recherche"
-          className="flex items-center gap-3 rounded-full border border-neutral-200 bg-white pl-5 pr-1.5 py-1.5 shadow-sm max-w-lg mx-auto mb-8"
+          className="mx-auto mb-8 flex max-w-lg items-center gap-3 rounded-full border border-beige-dark bg-white py-1.5 pl-5 pr-1.5 shadow-sm"
         >
-          <Search size={18} className="text-neutral-400 shrink-0" />
+          <Search size={18} className="shrink-0 text-noir/40" />
           <input
             type="text"
             name="q"
             placeholder="Recherchez tous les soins"
-            className="flex-1 outline-none text-sm bg-transparent placeholder:text-neutral-400"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
           />
           <button
             type="submit"
-            className="rounded-full bg-neutral-900 text-white px-6 py-3 text-sm font-semibold shrink-0"
+            className="shrink-0 rounded-full bg-noir px-6 py-3 text-sm font-semibold text-white transition hover:bg-or hover:text-noir"
           >
             Rechercher
           </button>
         </form>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <div className="flex flex-col justify-center gap-3 sm:flex-row">
           <Link
             href="/recherche"
-            className="rounded-full bg-neutral-900 text-white px-8 py-3.5 font-semibold hover:bg-neutral-800 transition"
+            className="rounded-full bg-noir px-8 py-3.5 font-semibold text-white transition hover:bg-or hover:text-noir"
           >
             Trouver un professionnel
           </Link>
           <Link
             href="/pro/inscription"
-            className="rounded-full border border-neutral-300 text-neutral-800 px-8 py-3.5 font-semibold hover:bg-neutral-100 transition"
+            className="rounded-full border border-noir/20 px-8 py-3.5 font-semibold text-noir transition hover:bg-white"
           >
             Je suis un professionnel
           </Link>
         </div>
       </section>
 
-      {/* Catégories */}
-      <section className="px-6 py-14">
-        <h2 className="text-2xl font-serif text-center mb-1">
-          Toutes les catégories beauté
-        </h2>
-        <p className="text-neutral-500 text-center text-sm mb-8">
+      {/* Catégories — rangée compacte plutôt qu'une grille dense */}
+      <section className="px-6 py-12">
+        <h2 className="mb-6 text-center font-display text-xl text-noir">
           Un professionnel pour chaque besoin
-        </p>
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+        </h2>
+        <div className="-mx-6 flex gap-3 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categories.map((cat) => (
             <Link
-              key={cat.name}
-              href={`/recherche?categorie=${encodeURIComponent(cat.name)}`}
-              className="flex flex-col items-center gap-2 rounded-2xl bg-[#F5EFE6] py-6 hover:bg-[#EFE4D3] transition"
+              key={cat.slug}
+              href={`/recherche?categorie=${cat.slug}`}
+              className="flex shrink-0 flex-col items-center gap-2 rounded-2xl bg-beige px-5 py-4 text-center transition hover:bg-beige-dark"
             >
-              <span className="text-3xl">{cat.icon}</span>
-              <span className="text-sm text-center px-1">{cat.name}</span>
+              <cat.icon size={20} />
+              <span className="whitespace-nowrap text-xs text-noir/80">{cat.label}</span>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Pourquoi BeautyConnect */}
-      <section className="px-6 py-14 bg-[#F9F6F0]">
-        <div className="grid gap-6 max-w-2xl mx-auto">
-          <FeatureCard
-            icon={<CalendarCheck size={22} />}
+      {/* Recommandés — données réelles */}
+      {recommandes.length > 0 && (
+        <section className="px-6 py-10">
+          <div className="mb-5 flex items-baseline justify-between">
+            <h2 className="font-display text-xl text-noir">Recommandés</h2>
+            <Link href="/recherche" className="text-xs font-medium text-or-dark">
+              Tout voir
+            </Link>
+          </div>
+          <div className="-mx-6 flex snap-x gap-4 overflow-x-auto px-6 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {recommandes.map((salon) => (
+              <FeaturedSalonCard key={salon.id} salon={salon} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Pourquoi BeautyConnect — bandeau compact, une seule rangée */}
+      <section className="bg-beige px-6 py-12">
+        <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
+          <FeatureItem
+            icon={<CalendarCheck size={20} />}
             title="Réservation instantanée"
-            description="Choisissez un créneau disponible et confirmez en 2 minutes."
+            description="Un créneau, confirmé en 2 minutes."
           />
-          <FeatureCard
-            icon={<ShieldCheck size={22} />}
+          <FeatureItem
+            icon={<ShieldCheck size={20} />}
             title="Paiement sécurisé"
-            description="Acompte ou paiement complet via Stripe, en toute confiance."
+            description="Acompte ou paiement complet via Stripe."
           />
-          <FeatureCard
-            icon={<MessageSquareText size={22} />}
+          <FeatureItem
+            icon={<MessageSquareText size={20} />}
             title="Avis vérifiés"
-            description="Des avis authentiques laissés uniquement après un rendez-vous réel."
+            description="Uniquement après un rendez-vous réel."
           />
         </div>
       </section>
 
-      {/* Recommandés */}
-      <section className="px-6 py-14">
-        <h2 className="text-xl font-serif mb-5">Recommandés</h2>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          <RecommandedCardPlaceholder
-            name="Salon Élégance Noire"
-            ville="Ixelles, Bruxelles"
-            type="Esthéticienne · 128 avis"
-            note="4.9"
-          />
-          <RecommandedCardPlaceholder
-            name="Juju Beauty"
-            ville="Geraardsbergen"
-            type="Salon de beauté"
-            note="4.9"
-          />
-        </div>
-      </section>
-
-      {/* CTA Pro — fond clair, séparé du footer par de l'espace */}
-      <section className="px-6 py-16 mb-8 text-center bg-[#F5EFE6] mx-6 rounded-3xl">
-        <h2 className="text-2xl font-serif mb-3 text-neutral-900">
+      {/* CTA Pro */}
+      <section className="mx-6 my-12 rounded-3xl bg-noir px-6 py-16 text-center">
+        <h2 className="mb-3 font-display text-2xl text-white">
           Vous êtes un professionnel de la beauté ?
         </h2>
-        <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+        <p className="mx-auto mb-8 max-w-md text-white/60">
           Développez votre activité, gérez votre agenda et vos paiements sur
           Misswaxbeautycare.
         </p>
         <Link
           href="/pro/inscription"
-          className="inline-block rounded-full bg-neutral-900 text-white px-10 py-3.5 font-semibold hover:bg-neutral-800 transition"
+          className="inline-block rounded-full bg-or px-10 py-3.5 font-semibold text-noir transition hover:bg-or-light"
         >
           Créer mon salon
         </Link>
@@ -153,7 +172,7 @@ export default function HomePage() {
   );
 }
 
-function FeatureCard({
+function FeatureItem({
   icon,
   title,
   description,
@@ -163,40 +182,12 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl bg-white border border-neutral-200 p-6">
-      <div className="flex items-center gap-3 mb-2">
-        <span className="text-amber-500">{icon}</span>
-        <h3 className="font-serif text-lg">{title}</h3>
+    <div className="text-center sm:text-left">
+      <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
+        <span className="text-or-dark">{icon}</span>
+        <h3 className="font-display text-base text-noir">{title}</h3>
       </div>
-      <p className="text-neutral-500 text-sm">{description}</p>
-    </div>
-  );
-}
-
-function RecommandedCardPlaceholder({
-  name,
-  ville,
-  type,
-  note,
-}: {
-  name: string;
-  ville: string;
-  type: string;
-  note: string;
-}) {
-  return (
-    <div className="min-w-[220px] rounded-2xl overflow-hidden border border-neutral-200">
-      <div className="h-32 bg-neutral-800" />
-      <div className="p-3">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold">{name}</span>
-          <span className="flex items-center gap-1 text-amber-500 text-sm">
-            <Star size={14} fill="currentColor" /> {note}
-          </span>
-        </div>
-        <p className="text-sm text-neutral-500">{ville}</p>
-        <p className="text-xs text-neutral-400">{type}</p>
-      </div>
+      <p className="text-sm text-noir/50">{description}</p>
     </div>
   );
 }

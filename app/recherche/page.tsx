@@ -1,31 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import {
-  Search,
-  Grid3x3,
-  Scissors,
-  Sparkles,
-  Hand,
-  Eye,
-  Palette,
-  Waves,
-  Flower2,
-  Gem,
-  Star,
-} from "lucide-react";
+import { Search, Grid3x3 } from "lucide-react";
 import { LocationPicker } from "@/components/search/LocationPicker";
-
-const categories = [
-  { slug: null, label: "Tous", icon: Grid3x3 },
-  { slug: "coiffeur", label: "Coiffeur", icon: Scissors },
-  { slug: "estheticienne", label: "Esthéticienne", icon: Sparkles },
-  { slug: "onglerie", label: "Onglerie", icon: Hand },
-  { slug: "extension-cils", label: "Sourcils et cils", icon: Eye },
-  { slug: "maquillage-permanent", label: "Maquillage", icon: Palette },
-  { slug: "spa", label: "Spa", icon: Waves },
-  { slug: "beaute-afro", label: "Beauté afro", icon: Flower2 },
-  { slug: "soins-visage", label: "Soins visage", icon: Gem },
-];
+import { categories } from "@/lib/categories";
+import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
+import { SalonListRow } from "@/components/salon/SalonListRow";
 
 interface RecherchePageProps {
   searchParams: Promise<{
@@ -35,20 +14,10 @@ interface RecherchePageProps {
   }>;
 }
 
-type SalonLite = {
-  id: string;
-  name: string;
-  city: string;
-  coverUrl: string | null;
-  categorieLabel: string;
-  note: number | null;
-  nombreAvis: number;
-};
-
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
   const { q, categorie, ville } = await searchParams;
 
-  let salons: SalonLite[] = [];
+  let salons: SalonCardData[] = [];
   let errorMessage: string | null = null;
 
   try {
@@ -104,63 +73,55 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
   const aProximite = salons.slice(6);
 
   return (
-    <main className="min-h-screen bg-white text-black">
+    <main className="min-h-screen bg-white">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
         <LocationPicker />
         <Link
           href="/"
-          className="h-11 w-11 flex items-center justify-center rounded-full bg-neutral-900 text-white"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-noir text-white transition hover:bg-or hover:text-noir"
         >
           <Grid3x3 size={18} />
         </Link>
       </div>
 
       <div className="px-6 pb-6">
-        <form className="flex items-center gap-3 rounded-full border border-neutral-200 pl-5 pr-1.5 py-1.5 shadow-sm">
-          <Search size={18} className="text-neutral-400 shrink-0" />
+        <form className="flex items-center gap-3 rounded-full border border-beige-dark bg-white pl-5 pr-1.5 py-1.5 shadow-sm">
+          <Search size={18} className="shrink-0 text-noir/40" />
           <input
             type="text"
             name="q"
             defaultValue={q}
             placeholder="Recherchez tous les soins"
-            className="flex-1 outline-none text-sm bg-transparent placeholder:text-neutral-400"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
           />
           <button
             type="submit"
-            className="rounded-full bg-neutral-900 text-white px-6 py-3 text-sm font-semibold shrink-0"
+            className="shrink-0 rounded-full bg-noir px-6 py-3 text-sm font-semibold text-white transition hover:bg-or hover:text-noir"
           >
             Rechercher
           </button>
         </form>
       </div>
 
-      <section className="px-6 pb-8">
-        <div className="grid grid-cols-4 gap-3">
-          {categories.map((cat) => {
-            const Icon = cat.icon;
-            const isActive = categorie === cat.slug || (!categorie && !cat.slug);
-            return (
-              <Link
-                key={cat.label}
-                href={cat.slug ? `/recherche?categorie=${cat.slug}` : "/recherche"}
-                className={`flex flex-col items-center gap-2 rounded-2xl py-5 px-2 text-center transition ${
-                  isActive
-                    ? "bg-neutral-900 text-white"
-                    : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
-                }`}
-              >
-                <Icon size={22} />
-                <span className="text-xs leading-tight">{cat.label}</span>
-              </Link>
-            );
-          })}
+      <section className="pb-8">
+        <div className="flex gap-3 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <CategoryPill label="Tous" active={!categorie} href="/recherche" />
+          {categories.map((cat) => (
+            <CategoryPill
+              key={cat.slug}
+              label={cat.label}
+              Icon={cat.icon}
+              active={categorie === cat.slug}
+              href={`/recherche?categorie=${cat.slug}`}
+            />
+          ))}
         </div>
       </section>
 
       {errorMessage && (
         <section className="px-6 pb-8">
           <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-            <p className="font-semibold mb-1">Erreur lors du chargement des salons</p>
+            <p className="mb-1 font-semibold">Erreur lors du chargement des salons</p>
             <p className="break-words">{errorMessage}</p>
           </div>
         </section>
@@ -168,10 +129,10 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
       {!errorMessage && recommandes.length > 0 && (
         <section className="px-6 pb-10">
-          <h2 className="text-2xl font-bold mb-4">Recommandés</h2>
-          <div className="flex gap-4 overflow-x-auto pb-2 -mx-6 px-6 snap-x">
+          <h2 className="mb-4 font-display text-2xl text-noir">Recommandés</h2>
+          <div className="-mx-6 flex snap-x gap-4 overflow-x-auto px-6 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {recommandes.map((salon) => (
-              <SalonCard key={salon.id} salon={salon} />
+              <FeaturedSalonCard key={salon.id} salon={salon} />
             ))}
           </div>
         </section>
@@ -179,15 +140,13 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
       {!errorMessage && (
         <section className="px-6 pb-14">
-          <h2 className="text-xl font-bold mb-4">Établissements à proximité</h2>
+          <h2 className="mb-4 font-display text-xl text-noir">Établissements à proximité</h2>
           {aProximite.length === 0 && recommandes.length === 0 ? (
-            <p className="text-neutral-500 text-sm">
-              Aucun salon trouvé pour cette recherche.
-            </p>
+            <p className="text-sm text-noir/50">Aucun salon trouvé pour cette recherche.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {(aProximite.length > 0 ? aProximite : recommandes).map((salon) => (
-                <SalonRow key={salon.id} salon={salon} />
+                <SalonListRow key={salon.id} salon={salon} />
               ))}
             </div>
           )}
@@ -197,64 +156,26 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
   );
 }
 
-function SalonCard({ salon }: { salon: SalonLite }) {
+function CategoryPill({
+  label,
+  Icon,
+  active,
+  href,
+}: {
+  label: string;
+  Icon?: React.ComponentType<{ size?: number }>;
+  active: boolean;
+  href: string;
+}) {
   return (
     <Link
-      href={`/salon/${salon.id}`}
-      className="min-w-[280px] max-w-[280px] rounded-2xl overflow-hidden snap-start relative"
+      href={href}
+      className={`flex shrink-0 flex-col items-center gap-2 rounded-2xl px-4 py-3 text-center transition ${
+        active ? "bg-noir text-white" : "bg-beige text-noir/70 hover:bg-beige-dark"
+      }`}
     >
-      <div
-        className="h-56 bg-neutral-800 bg-cover bg-center relative"
-        style={{
-          backgroundImage: salon.coverUrl ? `url(${salon.coverUrl})` : undefined,
-        }}
-      >
-        <span className="absolute top-3 left-3 bg-white/95 text-xs font-semibold px-3 py-1.5 rounded-full">
-          À la une
-        </span>
-      </div>
-      <div className="pt-3">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold truncate">{salon.name}</span>
-          {salon.note != null && (
-            <span className="flex items-center gap-1 text-sm shrink-0">
-              <Star size={14} className="text-amber-500" fill="currentColor" />{" "}
-              {salon.note.toFixed(1)}
-            </span>
-          )}
-        </div>
-        <p className="text-sm text-neutral-500">{salon.city}</p>
-      </div>
-    </Link>
-  );
-}
-
-function SalonRow({ salon }: { salon: SalonLite }) {
-  return (
-    <Link
-      href={`/salon/${salon.id}`}
-      className="flex items-center gap-4 rounded-2xl border border-neutral-200 p-3 hover:shadow-md transition"
-    >
-      <div
-        className="h-20 w-20 rounded-xl bg-neutral-800 bg-cover bg-center shrink-0"
-        style={{
-          backgroundImage: salon.coverUrl ? `url(${salon.coverUrl})` : undefined,
-        }}
-      />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <span className="font-semibold truncate">{salon.name}</span>
-          {salon.note != null && (
-            <span className="flex items-center gap-1 text-amber-500 text-sm shrink-0">
-              <Star size={14} fill="currentColor" /> {salon.note.toFixed(1)}
-            </span>
-          )}
-        </div>
-        <p className="text-sm text-neutral-500">{salon.city}</p>
-        <p className="text-xs text-neutral-400">
-          {salon.categorieLabel} · {salon.nombreAvis} avis
-        </p>
-      </div>
+      {Icon ? <Icon size={20} /> : <Grid3x3 size={20} />}
+      <span className="whitespace-nowrap text-xs leading-tight">{label}</span>
     </Link>
   );
 }
