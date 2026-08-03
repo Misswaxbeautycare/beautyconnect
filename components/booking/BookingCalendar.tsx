@@ -35,6 +35,8 @@ export function BookingCalendar({
   const [selectedService, setSelectedService] = useState<Service | null>(services[0] ?? null);
   const [selectedDay, setSelectedDay] = useState(startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
@@ -56,18 +58,50 @@ export function BookingCalendar({
 
   async function confirmBooking(paymentType: "DEPOSIT" | "FULL") {
     if (!selectedService || !selectedSlot) return;
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        salonId,
-        serviceId: selectedService.id,
-        date: selectedSlot.toISOString(),
-        paymentType,
-      }),
-    });
-    const data = await res.json();
-    if (data.checkoutUrl) router.push(data.checkoutUrl);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          salonId,
+          serviceId: selectedService.id,
+          date: selectedSlot.toISOString(),
+          paymentType,
+        }),
+      });
+
+      if (res.status === 401) {
+        // Client non connecté : on l'envoie se connecter, puis on le
+        // ramène directement ici pour finaliser sa réservation.
+        router.push(`/login?redirect=${encodeURIComponent(`/salon/${salonId}`)}`);
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible de finaliser la réservation. Réessayez."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (data.checkoutUrl) {
+        router.push(data.checkoutUrl);
+      } else {
+        setError("Impossible de démarrer le paiement. Réessayez.");
+        setLoading(false);
+      }
+    } catch {
+      setError("Une erreur est survenue. Vérifiez votre connexion et réessayez.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -134,13 +168,21 @@ export function BookingCalendar({
       </div>
 
       {selectedService && selectedSlot && (
-        <div className="mt-6 flex flex-col gap-3 border-t border-beige-dark pt-6 sm:flex-row">
-          <Button variant="outline" className="flex-1" onClick={() => confirmBooking("DEPOSIT")}>
-            Réserver avec acompte ({selectedService.depositPct}%)
-          </Button>
-          <Button className="flex-1" onClick={() => confirmBooking("FULL")}>
-            Payer en totalité
-          </Button>
+        <div className="mt-6 border-t border-beige-dark pt-6">
+          {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={loading}
+              onClick={() => confirmBooking("DEPOSIT")}
+            >
+              Réserver avec acompte ({selectedService.depositPct}%)
+            </Button>
+            <Button className="flex-1" disabled={loading} onClick={() => confirmBooking("FULL")}>
+              Payer en totalité
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -4,12 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-export default function LoginPage() {
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +25,16 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword(data);
     if (error) {
       setError("Email ou mot de passe incorrect.");
+      return;
+    }
+
+    // Si on vient d'une page précise (ex: réservation sur une page salon),
+    // on y retourne directement plutôt que d'envoyer systématiquement vers
+    // un tableau de bord.
+    const redirect = searchParams.get("redirect");
+    if (redirect) {
+      router.push(redirect);
+      router.refresh();
       return;
     }
 
@@ -81,8 +93,21 @@ export default function LoginPage() {
       </form>
       <p className="mt-6 text-center text-sm text-noir/60">
         Pas encore de compte ?{" "}
-        <Link href="/register" className="text-or-dark underline">Créer un compte</Link>
+        <Link
+          href={searchParams.get("redirect") ? `/register?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/register"}
+          className="text-or-dark underline"
+        >
+          Créer un compte
+        </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

@@ -47,7 +47,7 @@ function RegisterForm() {
       }),
     });
 
-    router.push(isPro ? "/pro/dashboard" : "/client/dashboard");
+    router.push(searchParams.get("redirect") || (isPro ? "/pro/dashboard" : "/client/dashboard"));
   }
 
   return (
@@ -96,7 +96,12 @@ function RegisterForm() {
 
       <p className="mt-6 text-center text-sm text-noir/60">
         Déjà un compte ?{" "}
-        <Link href="/login" className="text-or-dark underline">Se connecter</Link>
+        <Link
+          href={searchParams.get("redirect") ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/login"}
+          className="text-or-dark underline"
+        >
+          Se connecter
+        </Link>
       </p>
     </div>
   );
