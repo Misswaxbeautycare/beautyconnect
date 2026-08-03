@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { CopySalonLink } from "@/components/pro/CopySalonLink";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { startOfMonth, startOfDay, endOfDay } from "date-fns";
 
@@ -95,6 +96,8 @@ export default async function ProDashboard() {
           </Link>
         </div>
       </div>
+
+      <CopySalonLink salonId={salon.id} />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
         <Card className="p-5">
