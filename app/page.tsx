@@ -64,10 +64,8 @@ export default async function HomePage() {
             <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-or-dark">
               BEAUTÉ · BIEN-ÊTRE · STYLE
             </p>
-            <h1 className="mb-5 font-display text-4xl leading-[1.1] text-noir md:text-5xl">
-              Réservez. Connectez.
-              <br />
-              <span className="text-or-dark">Rayonnez.</span>
+            <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
+              Réservez. Connectez. <span className="text-or-dark">Rayonnez.</span>
             </h1>
             <p className="mx-auto mb-6 max-w-md text-noir/60 lg:mx-0">
               Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
@@ -204,7 +202,7 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Pro */}
-      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-gradient-to-br from-or/15 via-beige to-or-light/20 px-6 py-16 text-center">
+      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-beige-dark px-6 py-16 text-center">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/20 blur-3xl"
