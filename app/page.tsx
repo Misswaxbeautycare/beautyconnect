@@ -97,7 +97,7 @@ export default async function HomePage() {
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-full bg-noir px-6 py-3 text-sm font-semibold text-white transition hover:bg-or hover:text-noir"
+                className="shrink-0 rounded-full bg-or px-6 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white"
               >
                 Rechercher
               </button>
@@ -106,7 +106,7 @@ export default async function HomePage() {
             <div className="flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/recherche"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-noir px-8 py-3.5 font-semibold text-white transition hover:bg-or hover:text-noir"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:text-white"
               >
                 Trouver un professionnel
               </Link>
@@ -120,12 +120,12 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Panneau signature — composition graphique, pas de photo nécessaire */}
+          {/* Panneau signature — dégradé doré chaleureux, pas de noir */}
           <div className="relative hidden aspect-[4/5] lg:block">
-            <div className="absolute inset-0 rounded-[2.5rem] bg-noir" />
-            <div className="absolute inset-6 rounded-[2rem] border border-white/10" />
-            <div className="absolute left-10 top-10 h-24 w-24 rounded-full bg-or/30 blur-2xl" />
-            <div className="absolute bottom-16 right-10 h-32 w-32 rounded-full bg-or/20 blur-3xl" />
+            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-or-dark via-[#8A5A28] to-[#4A2F14]" />
+            <div className="absolute inset-6 rounded-[2rem] border border-white/15" />
+            <div className="absolute left-10 top-10 h-24 w-24 rounded-full bg-or-light/40 blur-2xl" />
+            <div className="absolute bottom-16 right-10 h-32 w-32 rounded-full bg-or-light/30 blur-3xl" />
 
             <div className="absolute left-8 top-8 flex items-center gap-2 text-white/70">
               <Sparkles size={16} className="text-or" />
@@ -204,17 +204,21 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Pro */}
-      <section className="mx-6 my-12 rounded-3xl bg-noir px-6 py-16 text-center">
-        <h2 className="mb-3 font-display text-2xl text-white">
+      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-gradient-to-br from-or/15 via-beige to-or-light/20 px-6 py-16 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/20 blur-3xl"
+        />
+        <h2 className="relative mb-3 font-display text-2xl text-noir">
           Vous êtes un professionnel de la beauté ?
         </h2>
-        <p className="mx-auto mb-8 max-w-md text-white/60">
+        <p className="relative mx-auto mb-8 max-w-md text-noir/60">
           Développez votre activité, gérez votre agenda et vos paiements sur
           Misswaxbeautycare.
         </p>
         <Link
           href="/pro/inscription"
-          className="inline-block rounded-full bg-or px-10 py-3.5 font-semibold text-noir transition hover:bg-or-light"
+          className="relative inline-block rounded-full bg-or px-10 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:text-white"
         >
           Créer mon salon
         </Link>

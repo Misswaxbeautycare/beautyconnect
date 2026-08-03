@@ -10,13 +10,13 @@ const config: Config = {
       colors: {
         noir: "#0A0A0A",
         or: {
-          DEFAULT: "#C9A24B",
-          light: "#E4CE8F",
-          dark: "#9C7B2E",
+          DEFAULT: "#D4A24A",
+          light: "#EFC983",
+          dark: "#B8763A",
         },
         beige: {
-          DEFAULT: "#F3EEE6",
-          dark: "#E6DCC8",
+          DEFAULT: "#F9F1E4",
+          dark: "#EEDFC2",
         },
       },
       fontFamily: {

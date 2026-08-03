@@ -78,7 +78,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         <LocationPicker />
         <Link
           href="/"
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-noir text-white transition hover:bg-or hover:text-noir"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-or text-noir transition hover:bg-or-dark hover:text-white"
         >
           <Grid3x3 size={18} />
         </Link>
@@ -96,7 +96,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
           />
           <button
             type="submit"
-            className="shrink-0 rounded-full bg-noir px-6 py-3 text-sm font-semibold text-white transition hover:bg-or hover:text-noir"
+            className="shrink-0 rounded-full bg-or px-6 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white"
           >
             Rechercher
           </button>
@@ -171,7 +171,7 @@ function CategoryPill({
     <Link
       href={href}
       className={`flex shrink-0 flex-col items-center gap-2 rounded-2xl px-4 py-3 text-center transition ${
-        active ? "bg-noir text-white" : "bg-beige text-noir/70 hover:bg-beige-dark"
+        active ? "bg-or text-noir" : "bg-beige text-noir/70 hover:bg-beige-dark"
       }`}
     >
       {Icon ? <Icon size={20} /> : <Grid3x3 size={20} />}
