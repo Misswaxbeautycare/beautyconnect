@@ -16,18 +16,36 @@ import {
 } from "@/lib/uploads";
 
 type Category = { id: string; name: string };
+type ExistingPhoto = { id: string; url: string };
 
-interface Photo {
+interface NewPhoto {
   file: File;
   previewUrl: string;
 }
 
-export function SalonCreateForm({ categories }: { categories: Category[] }) {
+interface SalonEditFormProps {
+  categories: Category[];
+  salon: {
+    name: string;
+    description: string | null;
+    address: string | null;
+    city: string;
+    postalCode: string | null;
+    phone: string | null;
+    logoUrl: string | null;
+    photos: ExistingPhoto[];
+    categories: { categoryId: string }[];
+  };
+}
+
+export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [logoFile, setLogoFile] = useState<Photo | null>(null);
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>(salon.photos);
+  const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([]);
+  const [logo, setLogo] = useState<NewPhoto | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(salon.logoUrl);
   const [logoWarning, setLogoWarning] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -39,10 +57,19 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
     formState: { errors, isSubmitting },
   } = useForm<SalonInput>({
     resolver: zodResolver(salonSchema),
-    defaultValues: { categoryIds: [], country: "Belgique" } as unknown as SalonInput,
+    defaultValues: {
+      name: salon.name,
+      description: salon.description ?? "",
+      address: salon.address ?? "",
+      city: salon.city,
+      postalCode: salon.postalCode ?? "",
+      phone: salon.phone ?? "",
+      categoryIds: salon.categories.map((c) => c.categoryId),
+    } as unknown as SalonInput,
   });
 
   const selectedCategoryIds = watch("categoryIds") ?? [];
+  const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
   function toggleCategory(id: string) {
     const current = selectedCategoryIds;
@@ -50,11 +77,19 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
     setValue("categoryIds", next, { shouldValidate: true });
   }
 
+  function removeExistingPhoto(id: string) {
+    setExistingPhotos((prev) => prev.filter((p) => p.id !== id));
+  }
+
+  function removeNewPhoto(index: number) {
+    setNewPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
 
-    const remainingSlots = MAX_SALON_PHOTOS - photos.length;
+    const remainingSlots = MAX_SALON_PHOTOS - totalPhotoCount;
     if (remainingSlots <= 0) {
       setError(`Vous avez déjà ${MAX_SALON_PHOTOS} photos, le maximum autorisé.`);
       return;
@@ -73,7 +108,7 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
       }
     }
 
-    setPhotos((prev) => [
+    setNewPhotos((prev) => [
       ...prev,
       ...toAdd.map((file) => ({ file, previewUrl: URL.createObjectURL(file) })),
     ]);
@@ -96,14 +131,12 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
         ? null
         : "Cette image n'est pas carrée — elle sera recadrée automatiquement, une image carrée donne un meilleur résultat."
     );
-    setLogoFile({ file, previewUrl: URL.createObjectURL(file) });
+    const previewUrl = URL.createObjectURL(file);
+    setLogo({ file, previewUrl });
+    setLogoPreview(previewUrl);
   }
 
-  function removePhoto(index: number) {
-    setPhotos((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  async function uploadOne(photo: Photo): Promise<string> {
+  async function uploadOne(photo: NewPhoto): Promise<string> {
     const ext = photo.file.name.split(".").pop();
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error: uploadError } = await supabase.storage
@@ -111,9 +144,7 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
       .upload(path, photo.file, { upsert: false });
 
     if (uploadError) {
-      throw new Error(
-        `Échec de l'envoi d'une photo : ${uploadError.message}. Vérifiez que le bucket "salon-photos" existe et est public dans Supabase (Storage).`
-      );
+      throw new Error(`Échec de l'envoi d'une photo : ${uploadError.message}.`);
     }
 
     const { data: publicUrlData } = supabase.storage.from("salon-photos").getPublicUrl(path);
@@ -124,17 +155,22 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
     setError(null);
     setUploading(true);
     try {
-      const photoUrls: string[] = [];
-      for (const photo of photos) {
-        photoUrls.push(await uploadOne(photo));
+      const newPhotoUrls: string[] = [];
+      for (const photo of newPhotos) {
+        newPhotoUrls.push(await uploadOne(photo));
       }
-      const logoUrl = logoFile ? await uploadOne(logoFile) : null;
+      const logoUrl = logo ? await uploadOne(logo) : salon.logoUrl;
       setUploading(false);
 
       const res = await fetch("/api/salons", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, photoUrls, logoUrl }),
+        body: JSON.stringify({
+          ...data,
+          keepPhotoIds: existingPhotos.map((p) => p.id),
+          newPhotoUrls,
+          logoUrl,
+        }),
       });
 
       if (!res.ok) {
@@ -236,13 +272,12 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
         <label className="text-sm text-noir/70">Photo de profil du salon</label>
         <p className="mt-1 text-xs text-noir/40">
           Format carré recommandé (ex: 500 × 500 px), JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max.
-          Utilisée comme photo d&apos;identité de votre salon partout sur le site.
         </p>
         <div className="mt-2 flex items-center gap-3">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-beige-dark bg-beige">
-            {logoFile ? (
+            {logoPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoFile.previewUrl} alt="" className="h-full w-full object-cover" />
+              <img src={logoPreview} alt="" className="h-full w-full object-cover" />
             ) : (
               <User size={22} className="text-noir/30" />
             )}
@@ -260,28 +295,34 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
       <div>
         <div className="flex items-baseline justify-between">
           <label className="text-sm text-noir/70">Photos du salon</label>
-          <span className="text-xs text-noir/40">{photos.length}/{MAX_SALON_PHOTOS}</span>
+          <span className="text-xs text-noir/40">{totalPhotoCount}/{MAX_SALON_PHOTOS}</span>
         </div>
         <p className="mt-1 text-xs text-noir/40">
           {MAX_SALON_PHOTOS} photos maximum, JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max chacune.
         </p>
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          multiple
-          disabled={photos.length >= MAX_SALON_PHOTOS}
-          onChange={handleFilesSelected}
-          className="mt-2 block w-full text-sm text-noir/70 file:mr-4 file:rounded-full file:border-0 file:bg-beige file:px-4 file:py-2 file:text-sm file:font-medium file:text-noir hover:file:bg-beige-dark disabled:opacity-40"
-        />
-        {photos.length > 0 && (
+
+        {(existingPhotos.length > 0 || newPhotos.length > 0) && (
           <div className="mt-3 flex flex-wrap gap-3">
-            {photos.map((photo, i) => (
-              <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border border-beige-dark">
+            {existingPhotos.map((photo) => (
+              <div key={photo.id} className="relative h-20 w-20 overflow-hidden rounded-lg border border-beige-dark">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.url} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => removeExistingPhoto(photo.id)}
+                  className="absolute right-1 top-1 rounded-full bg-noir/70 p-0.5 text-white"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+            {newPhotos.map((photo, i) => (
+              <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border border-or">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={photo.previewUrl} alt="" className="h-full w-full object-cover" />
                 <button
                   type="button"
-                  onClick={() => removePhoto(i)}
+                  onClick={() => removeNewPhoto(i)}
                   className="absolute right-1 top-1 rounded-full bg-noir/70 p-0.5 text-white"
                 >
                   <X size={12} />
@@ -290,12 +331,21 @@ export function SalonCreateForm({ categories }: { categories: Category[] }) {
             ))}
           </div>
         )}
+
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          disabled={totalPhotoCount >= MAX_SALON_PHOTOS}
+          onChange={handleFilesSelected}
+          className="mt-3 block w-full text-sm text-noir/70 file:mr-4 file:rounded-full file:border-0 file:bg-beige file:px-4 file:py-2 file:text-sm file:font-medium file:text-noir hover:file:bg-beige-dark disabled:opacity-40"
+        />
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" disabled={isSubmitting || uploading} className="w-full">
-        {uploading ? "Envoi des photos..." : isSubmitting ? "Création..." : "Créer mon salon"}
+        {uploading ? "Envoi des photos..." : isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
       </Button>
     </form>
   );
