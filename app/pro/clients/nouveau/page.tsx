@@ -14,10 +14,19 @@ export default async function NouveauRendezVousPage() {
   const salon = await prisma.salon.findUnique({ where: { ownerId: dbUser.id } });
   if (!salon) redirect("/pro/salon/creer");
 
-  const services = await prisma.service.findMany({
+  const servicesRaw = await prisma.service.findMany({
     where: { salonId: salon.id, isActive: true },
     orderBy: { name: "asc" },
   });
+
+  // Le prix vient de la base sous un type "Decimal" (Prisma), qu'il faut
+  // convertir en nombre simple avant de le transmettre à un composant client.
+  const services = servicesRaw.map((s: { id: string; name: string; price: unknown; durationMin: number }) => ({
+    id: s.id,
+    name: s.name,
+    price: Number(s.price),
+    durationMin: s.durationMin,
+  }));
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">

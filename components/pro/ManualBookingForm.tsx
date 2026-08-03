@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 
-type Service = { id: string; name: string; price: string | number; durationMin: number };
+type Service = { id: string; name: string; price: number; durationMin: number };
 
 export function ManualBookingForm({ services }: { services: Service[] }) {
   const router = useRouter();
