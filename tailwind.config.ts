@@ -18,6 +18,10 @@ const config: Config = {
           DEFAULT: "#F9F1E4",
           dark: "#EEDFC2",
         },
+        terracotta: {
+          DEFAULT: "#D9A876",
+          dark: "#C98F5E",
+        },
       },
       fontFamily: {
         display: ["var(--font-playfair)", "serif"],

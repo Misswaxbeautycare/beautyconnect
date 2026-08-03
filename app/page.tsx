@@ -48,11 +48,11 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-beige px-6 py-20">
+      <section className="relative overflow-hidden bg-terracotta px-6 py-20">
         {/* Halo décoratif — pas de photo nécessaire, juste de la profondeur */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-or/20 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/20 blur-3xl"
         />
         <div
           aria-hidden
@@ -61,11 +61,11 @@ export default async function HomePage() {
 
         <div className="relative mx-auto grid max-w-6xl gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div className="text-center lg:text-left">
-            <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-or-dark">
+            <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-[#5C3A1E]">
               BEAUTÉ · BIEN-ÊTRE · STYLE
             </p>
             <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
-              Réservez. Connectez. <span className="text-or-dark">Rayonnez.</span>
+              Réservez. Connectez. <span className="text-[#5C3A1E]">Rayonnez.</span>
             </h1>
             <p className="mx-auto mb-6 max-w-md text-noir/60 lg:mx-0">
               Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
@@ -181,7 +181,7 @@ export default async function HomePage() {
       )}
 
       {/* Pourquoi BeautyConnect — bandeau compact, une seule rangée */}
-      <section className="bg-beige px-6 py-12">
+      <section className="bg-terracotta px-6 py-12">
         <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
           <FeatureItem
             icon={<CalendarCheck size={20} />}
@@ -202,10 +202,10 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Pro */}
-      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-beige-dark px-6 py-16 text-center">
+      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-terracotta-dark px-6 py-16 text-center">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/20 blur-3xl"
+          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-white/15 blur-3xl"
         />
         <h2 className="relative mb-3 font-display text-2xl text-noir">
           Vous êtes un professionnel de la beauté ?
@@ -216,7 +216,7 @@ export default async function HomePage() {
         </p>
         <Link
           href="/pro/inscription"
-          className="relative inline-block rounded-full bg-or px-10 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+          className="relative inline-block rounded-full bg-white px-10 py-3.5 font-semibold text-noir shadow-lg transition hover:bg-or hover:text-white"
         >
           Créer mon salon
         </Link>
@@ -237,7 +237,7 @@ function FeatureItem({
   return (
     <div className="text-center sm:text-left">
       <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
-        <span className="text-or-dark">{icon}</span>
+        <span className="text-[#5C3A1E]">{icon}</span>
         <h3 className="font-display text-base text-noir">{title}</h3>
       </div>
       <p className="text-sm text-noir/50">{description}</p>
