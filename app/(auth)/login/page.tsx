@@ -25,7 +25,16 @@ export default function LoginPage() {
       setError("Email ou mot de passe incorrect.");
       return;
     }
-    router.push("/client/dashboard");
+
+    // Redirige vers le bon espace selon le rôle — avant ce correctif, tous
+    // les comptes (y compris professionnels) atterrissaient sur l'espace client.
+    try {
+      const res = await fetch("/api/users");
+      const body = await res.json();
+      router.push(body.role === "PROFESSIONAL" ? "/pro/dashboard" : "/client/dashboard");
+    } catch {
+      router.push("/client/dashboard");
+    }
     router.refresh();
   }
   return (

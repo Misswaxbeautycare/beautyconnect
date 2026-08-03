@@ -1,5 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
+
+// Utilisé après connexion pour savoir vers quel tableau de bord rediriger
+// (professionnel vs client), puisque le rôle est stocké dans la table
+// applicative "users" et non dans la session Supabase Auth elle-même.
+export async function GET() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ role: null }, { status: 401 });
+
+  const dbUser = await prisma.user.findUnique({
+    where: { authId: user.id },
+    select: { role: true },
+  });
+
+  return NextResponse.json({ role: dbUser?.role ?? null });
+}
 
 // Crée (ou met à jour) le profil applicatif (table users) juste après l'inscription Supabase Auth.
 // Utilise un upsert : si un compte a été créé côté Supabase Auth sans que cette route ait été
