@@ -11,8 +11,21 @@ export default async function ProDashboard() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const dbUser = await prisma.user.findUnique({ where: { authId: user.id } });
-  if (!dbUser || dbUser.role !== "PROFESSIONAL") redirect("/login");
+  // Certains comptes ont pu être créés côté Supabase Auth sans que le profil
+  // applicatif (table users) ne soit créé (ancien bug d'inscription).
+  // On répare automatiquement ici plutôt que de renvoyer silencieusement vers /login.
+  const dbUser = await prisma.user.upsert({
+    where: { authId: user.id },
+    update: { role: "PROFESSIONAL" },
+    create: {
+      authId: user.id,
+      email: user.email ?? "",
+      firstName: (user.user_metadata?.first_name as string) ?? "",
+      lastName: (user.user_metadata?.last_name as string) ?? "",
+      phone: (user.user_metadata?.phone as string) ?? null,
+      role: "PROFESSIONAL",
+    },
+  });
 
   const salon = await prisma.salon.findUnique({
     where: { ownerId: dbUser.id },
@@ -31,6 +44,12 @@ export default async function ProDashboard() {
         <p className="mt-2 text-noir/60">
           Vous n&apos;avez pas encore configuré votre espace professionnel.
         </p>
+        <Link
+          href="/pro/salon/creer"
+          className="mt-6 inline-block rounded-full bg-noir text-white px-8 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
+        >
+          Configurer mon salon
+        </Link>
       </div>
     );
   }

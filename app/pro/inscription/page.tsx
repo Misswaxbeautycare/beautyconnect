@@ -39,6 +39,29 @@ export default function ProInscriptionPage() {
       setError(error.message);
       return;
     }
+
+    // Crée le profil applicatif (table users) avec le rôle PROFESSIONAL.
+    // Sans cette étape, le tableau de bord pro ne trouvait jamais l'utilisateur
+    // et renvoyait systématiquement vers /login.
+    if (authData.user) {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          authId: authData.user.id,
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          role: "PROFESSIONAL",
+        }),
+      });
+      if (!res.ok) {
+        setError("Compte créé, mais une erreur est survenue lors de la configuration du profil. Contactez le support.");
+        return;
+      }
+    }
+
     router.push("/pro/dashboard");
   }
 
