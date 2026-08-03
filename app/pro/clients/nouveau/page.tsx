@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { ManualBookingForm } from "@/components/pro/ManualBookingForm";
 
 export default async function NouveauRendezVousPage() {
@@ -35,9 +36,17 @@ export default async function NouveauRendezVousPage() {
         Pour une cliente reçue par téléphone ou en personne, sans passer par la réservation en ligne.
       </p>
       {services.length === 0 ? (
-        <p className="mt-8 text-sm text-noir/50">
-          Vous devez d&apos;abord ajouter au moins une prestation à votre salon avant de pouvoir créer un rendez-vous.
-        </p>
+        <div className="mt-8">
+          <p className="text-sm text-noir/50">
+            Vous devez d&apos;abord ajouter au moins une prestation à votre salon avant de pouvoir créer un rendez-vous.
+          </p>
+          <Link
+            href="/pro/services/nouveau"
+            className="mt-4 inline-block rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
+          >
+            Ajouter une prestation
+          </Link>
+        </div>
       ) : (
         <ManualBookingForm services={services} />
       )}

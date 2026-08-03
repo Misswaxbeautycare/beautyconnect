@@ -74,12 +74,18 @@ export default async function ProDashboard() {
           <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
           <p className="mt-1 text-noir/60">Tableau de bord professionnel</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Link
             href="/pro/salon/modifier"
             className="rounded-full border border-noir/15 text-noir px-6 py-3 text-sm font-semibold hover:bg-beige transition"
           >
             Modifier mon salon
+          </Link>
+          <Link
+            href="/pro/services"
+            className="rounded-full border border-noir/15 text-noir px-6 py-3 text-sm font-semibold hover:bg-beige transition"
+          >
+            Mes prestations
           </Link>
           <Link
             href="/pro/agenda"
