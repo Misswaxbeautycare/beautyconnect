@@ -12,7 +12,7 @@ import {
   MAX_SALON_PHOTOS,
   MAX_IMAGE_SIZE_MB,
   validateImageFile,
-  checkIsSquareish,
+  cropToSquare,
 } from "@/lib/uploads";
 
 type Category = { id: string; name: string };
@@ -46,7 +46,6 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
   const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([]);
   const [logo, setLogo] = useState<NewPhoto | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(salon.logoUrl);
-  const [logoWarning, setLogoWarning] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const {
@@ -125,15 +124,14 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
       return;
     }
 
-    const isSquareish = await checkIsSquareish(file);
-    setLogoWarning(
-      isSquareish
-        ? null
-        : "Cette image n'est pas carrée — elle sera recadrée automatiquement, une image carrée donne un meilleur résultat."
-    );
-    const previewUrl = URL.createObjectURL(file);
-    setLogo({ file, previewUrl });
-    setLogoPreview(previewUrl);
+    try {
+      const cropped = await cropToSquare(file);
+      const previewUrl = URL.createObjectURL(cropped);
+      setLogo({ file: cropped, previewUrl });
+      setLogoPreview(previewUrl);
+    } catch {
+      setError("Impossible de traiter cette image, réessayez avec une autre.");
+    }
   }
 
   async function uploadOne(photo: NewPhoto): Promise<string> {
@@ -271,7 +269,7 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
       <div>
         <label className="text-sm text-noir/70">Photo de profil du salon</label>
         <p className="mt-1 text-xs text-noir/40">
-          Format carré recommandé (ex: 500 × 500 px), JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max.
+          Recadrée automatiquement en carré, JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max.
         </p>
         <div className="mt-2 flex items-center gap-3">
           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-beige-dark bg-beige">
@@ -289,7 +287,6 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
             className="block flex-1 text-sm text-noir/70 file:mr-4 file:rounded-full file:border-0 file:bg-beige file:px-4 file:py-2 file:text-sm file:font-medium file:text-noir hover:file:bg-beige-dark"
           />
         </div>
-        {logoWarning && <p className="mt-1 text-xs text-amber-700">{logoWarning}</p>}
       </div>
 
       <div>

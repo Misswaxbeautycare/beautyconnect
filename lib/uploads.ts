@@ -12,21 +12,47 @@ export function validateImageFile(file: File): string | null {
   return null;
 }
 
-// Vérifie si une image est (à peu près) carrée — utilisé pour la photo de
-// profil, où l'on préfère avertir plutôt que bloquer, pour ne pas frustrer
-// la personne si son fichier n'est pas parfaitement carré.
-export function checkIsSquareish(file: File): Promise<boolean> {
-  return new Promise((resolve) => {
+// Recadre automatiquement une image en carré (recadrage centré), pour la
+// photo de profil du salon. Redimensionne aussi à une taille raisonnable
+// (600x600 max) pour garder des fichiers légers.
+export function cropToSquare(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
+
     img.onload = () => {
-      const ratio = img.width / img.height;
       URL.revokeObjectURL(url);
-      resolve(ratio > 0.9 && ratio < 1.1);
+
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      const targetSize = Math.min(side, 600);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Impossible de traiter l'image."));
+        return;
+      }
+      ctx.drawImage(img, sx, sy, side, side, 0, 0, targetSize, targetSize);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Impossible de traiter l'image."));
+            return;
+          }
+          resolve(new File([blob], file.name, { type: blob.type }));
+        },
+        file.type === "image/png" ? "image/png" : "image/jpeg",
+        0.9
+      );
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      resolve(true); // en cas d'échec de lecture, ne pas bloquer inutilement
+      reject(new Error("Impossible de lire cette image."));
     };
     img.src = url;
   });
