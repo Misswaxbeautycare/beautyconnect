@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         bookingId: booking.id,
         type: "BOOKING_CONFIRMATION",
         title: "Réservation confirmée",
-        message: "Votre rendez-vous a bien été confirmé. Réglez directement sur place.",
+        message: "Votre rendez-vous a bien été confirmé. Réglez directement sur place. Merci de bien respecter votre horaire — prévenez le salon en cas d'empêchement.",
       },
     });
 

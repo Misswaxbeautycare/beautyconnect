@@ -99,20 +99,22 @@ export default async function HomePage() {
 
             <form
               action="/recherche"
-              className="mx-auto mb-8 flex max-w-lg items-center gap-3 rounded-full border border-white bg-white py-1.5 pl-5 pr-1.5 shadow-lg shadow-noir/5 lg:mx-0"
+              className="mx-auto mb-8 flex max-w-lg items-center gap-2 rounded-full border border-white bg-white py-1.5 pl-5 pr-1.5 shadow-lg shadow-noir/5 lg:mx-0"
             >
               <Search size={18} className="shrink-0 text-noir/40" />
               <input
                 type="text"
                 name="q"
                 placeholder="Recherchez tous les soins"
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-full bg-or px-6 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+                aria-label="Rechercher"
+                className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-or px-4 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white sm:px-6"
               >
-                Rechercher
+                <Search size={16} className="sm:hidden" />
+                <span className="hidden sm:inline">Rechercher</span>
               </button>
             </form>
 
@@ -195,20 +197,23 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Pourquoi BeautyConnect — bandeau compact, une seule rangée */}
-      <section className="bg-terracotta px-6 py-12">
+      {/* Pourquoi BeautyConnect — même cadrage que la section CTA juste en dessous */}
+      <section className="mx-6 my-12 rounded-3xl bg-terracotta px-6 py-12">
         <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
           <FeatureItem
+            href="/recherche"
             icon={<CalendarCheck size={20} />}
             title="Réservation instantanée"
             description="Un créneau, confirmé en 2 minutes."
           />
           <FeatureItem
+            href="/client/dashboard"
             icon={<ShieldCheck size={20} />}
             title="Paiement sécurisé"
             description="Acompte ou paiement complet via Stripe."
           />
           <FeatureItem
+            href="/recherche"
             icon={<MessageSquareText size={20} />}
             title="Avis vérifiés"
             description="Uniquement après un rendez-vous réel."
@@ -241,21 +246,23 @@ export default async function HomePage() {
 }
 
 function FeatureItem({
+  href,
   icon,
   title,
   description,
 }: {
+  href: string;
   icon: React.ReactNode;
   title: string;
   description: string;
 }) {
   return (
-    <div className="text-center sm:text-left">
+    <Link href={href} className="group block text-center sm:text-left">
       <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
         <span className="text-[#5C3A1E]">{icon}</span>
-        <h3 className="font-display text-base text-noir">{title}</h3>
+        <h3 className="font-display text-base text-noir group-hover:underline">{title}</h3>
       </div>
       <p className="text-sm text-noir/50">{description}</p>
-    </div>
+    </Link>
   );
 }

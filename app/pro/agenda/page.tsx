@@ -3,8 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
+import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { startOfDay } from "date-fns";
+import { Phone, Mail } from "lucide-react";
 
 function paymentBadge(payment: { type: string; status: string; amount: unknown } | null) {
   if (!payment) {
@@ -90,6 +92,11 @@ export default async function AgendaPage() {
         </div>
       </div>
 
+      <p className="mt-6 rounded-xl bg-beige px-4 py-3 text-xs text-noir/60">
+        Rappel envoyé automatiquement à chaque cliente : merci de bien respecter vos rendez-vous
+        (prévenez le salon en cas d&apos;empêchement).
+      </p>
+
       <div className="mt-10 space-y-8">
         {Object.entries(groupes).map(([jour, bookingsDuJour]) => (
           <div key={jour}>
@@ -101,9 +108,13 @@ export default async function AgendaPage() {
                 const nomClient = b.client
                   ? `${b.client.firstName} ${b.client.lastName}`
                   : b.guestName ?? "Client sans nom";
+                const email = b.client?.email ?? b.guestEmail ?? null;
+                const phone = b.client?.phone ?? b.guestPhone ?? null;
                 const badge = paymentBadge(b.payment);
+                const needsPaymentNudge = !b.payment || b.payment.status !== "PAID";
+
                 return (
-                  <Card key={b.id} className="flex items-center justify-between gap-4 p-5">
+                  <Card key={b.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-medium text-noir">{nomClient}</p>
                       <p className="text-sm text-noir/60">
@@ -114,14 +125,36 @@ export default async function AgendaPage() {
                           </span>
                         )}
                       </p>
+                      <div className="mt-1.5 flex flex-wrap gap-3">
+                        {phone && (
+                          <a
+                            href={`tel:${phone}`}
+                            className="flex items-center gap-1 text-xs text-noir/60 hover:text-or-dark"
+                          >
+                            <Phone size={12} /> {phone}
+                          </a>
+                        )}
+                        {email && (
+                          <a
+                            href={`mailto:${email}`}
+                            className="flex items-center gap-1 text-xs text-noir/60 hover:text-or-dark"
+                          >
+                            <Mail size={12} /> {email}
+                          </a>
+                        )}
+                        {!phone && !email && (
+                          <span className="text-xs text-noir/30">Aucune coordonnée enregistrée</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
                       <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">
                         {b.status}
                       </span>
                       <span className={`rounded-full px-3 py-1 text-xs ${badge.className}`}>
                         {badge.label}
                       </span>
+                      {needsPaymentNudge && <PaymentLinkButton bookingId={b.id} />}
                     </div>
                   </Card>
                 );

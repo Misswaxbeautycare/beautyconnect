@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             bookingId: booking.id,
             type: "BOOKING_CONFIRMATION",
             title: "Réservation confirmée",
-            message: "Votre rendez-vous a bien été confirmé et payé.",
+            message: "Votre rendez-vous a bien été confirmé et payé. Merci de bien respecter votre horaire — prévenez le salon en cas d'empêchement.",
           },
         });
         // TODO : déclencher l'envoi d'email (Resend) + programmer les rappels 24h/2h
