@@ -117,7 +117,7 @@ export function BookingCalendar({
     <div className="rounded-2xl border border-beige-dark bg-white p-6">
       {/* Choix de la prestation */}
       <p className="text-sm font-medium text-noir/70">Prestation</p>
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] touch-pan-x">
         {services.map((s) => (
           <button
             key={s.id}
@@ -136,7 +136,7 @@ export function BookingCalendar({
 
       {/* Choix du jour */}
       <p className="mt-6 text-sm font-medium text-noir/70">Jour</p>
-      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] touch-pan-x">
         {days.map((d) => (
           <button
             key={d.toISOString()}

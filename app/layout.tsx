@@ -45,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" style={{ colorScheme: "light only" }}>
       <body className="overflow-x-hidden bg-white">
         <Navbar />
-        <main className="min-h-screen overflow-x-hidden bg-white">{children}</main>
+        <main className="min-h-screen bg-white">{children}</main>
         <Footer />
       </body>
     </html>
