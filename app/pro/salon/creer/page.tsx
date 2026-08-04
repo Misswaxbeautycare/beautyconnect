@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SalonCreateForm } from "@/components/pro/SalonCreateForm";
+import { defaultPlan } from "@/lib/subscription-plans";
 
 export default async function CreerSalonPage() {
   const supabase = await createClient();
@@ -16,7 +17,7 @@ export default async function CreerSalonPage() {
       <p className="mt-2 text-sm text-noir/60">
         Ces informations seront visibles par vos futures clientes.
       </p>
-      <SalonCreateForm categories={categories} />
+      <SalonCreateForm categories={categories} maxPhotos={defaultPlan.maxPhotos} />
     </div>
   );
 }

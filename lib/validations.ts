@@ -20,7 +20,7 @@ export const bookingSchema = z.object({
   serviceId: z.string().uuid(),
   date: z.string(),
   notes: z.string().optional(),
-  paymentType: z.enum(["DEPOSIT", "FULL"]),
+  paymentType: z.enum(["DEPOSIT", "FULL", "ON_SITE"]),
 });
 export type BookingInput = z.infer<typeof bookingSchema>;
 

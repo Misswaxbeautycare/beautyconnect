@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { X, User } from "lucide-react";
 import {
-  MAX_SALON_PHOTOS,
   MAX_IMAGE_SIZE_MB,
   validateImageFile,
   cropToSquare,
@@ -25,6 +24,7 @@ interface NewPhoto {
 
 interface SalonEditFormProps {
   categories: Category[];
+  maxPhotos: number;
   salon: {
     name: string;
     description: string | null;
@@ -38,7 +38,7 @@ interface SalonEditFormProps {
   };
 }
 
-export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
+export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
@@ -88,15 +88,15 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
     const files = Array.from(e.target.files ?? []);
     e.target.value = "";
 
-    const remainingSlots = MAX_SALON_PHOTOS - totalPhotoCount;
+    const remainingSlots = maxPhotos - totalPhotoCount;
     if (remainingSlots <= 0) {
-      setError(`Vous avez déjà ${MAX_SALON_PHOTOS} photos, le maximum autorisé.`);
+      setError(`Vous avez déjà ${maxPhotos} photos, le maximum autorisé.`);
       return;
     }
 
     const toAdd = files.slice(0, remainingSlots);
     if (files.length > remainingSlots) {
-      setError(`Seulement ${remainingSlots} photo(s) supplémentaire(s) ajoutée(s) — maximum ${MAX_SALON_PHOTOS} au total.`);
+      setError(`Seulement ${remainingSlots} photo(s) supplémentaire(s) ajoutée(s) — maximum ${maxPhotos} au total.`);
     }
 
     for (const file of toAdd) {
@@ -292,10 +292,10 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
       <div>
         <div className="flex items-baseline justify-between">
           <label className="text-sm text-noir/70">Photos du salon</label>
-          <span className="text-xs text-noir/40">{totalPhotoCount}/{MAX_SALON_PHOTOS}</span>
+          <span className="text-xs text-noir/40">{totalPhotoCount}/{maxPhotos}</span>
         </div>
         <p className="mt-1 text-xs text-noir/40">
-          {MAX_SALON_PHOTOS} photos maximum, JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max chacune.
+          {maxPhotos} photos maximum, JPG/PNG/WebP, {MAX_IMAGE_SIZE_MB} Mo max chacune.
         </p>
 
         {(existingPhotos.length > 0 || newPhotos.length > 0) && (
@@ -333,7 +333,7 @@ export function SalonEditForm({ categories, salon }: SalonEditFormProps) {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           multiple
-          disabled={totalPhotoCount >= MAX_SALON_PHOTOS}
+          disabled={totalPhotoCount >= maxPhotos}
           onChange={handleFilesSelected}
           className="mt-3 block w-full text-sm text-noir/70 file:mr-4 file:rounded-full file:border-0 file:bg-beige file:px-4 file:py-2 file:text-sm file:font-medium file:text-noir hover:file:bg-beige-dark disabled:opacity-40"
         />

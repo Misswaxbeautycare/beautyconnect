@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema } from "@/lib/validations";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
-// Crée une réservation (statut PENDING) puis une session de paiement Stripe
+// Crée une réservation. Si le salon a le paiement en ligne (formule Signature
+// ou Prestige), une session Stripe est créée (acompte ou intégral). Sinon
+// (formule Essentiel), la réservation est directement confirmée et réglée
+// sur place — aucun appel Stripe.
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -19,8 +23,17 @@ export async function POST(req: NextRequest) {
 
   const client = await prisma.user.findUnique({ where: { authId: user.id } });
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
-  if (!client || !service) {
+  const salon = await prisma.salon.findUnique({ where: { id: salonId } });
+  if (!client || !service || !salon) {
     return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 });
+  }
+
+  const plan = getEffectivePlan(salon);
+  if (paymentType !== "ON_SITE" && !plan.onlinePayment) {
+    return NextResponse.json(
+      { error: "Ce salon ne propose pas encore le paiement en ligne." },
+      { status: 400 }
+    );
   }
 
   // Empêche le double-booking sur le même créneau
@@ -29,6 +42,32 @@ export async function POST(req: NextRequest) {
   });
   if (conflict) {
     return NextResponse.json({ error: "Ce créneau vient d'être réservé." }, { status: 409 });
+  }
+
+  if (paymentType === "ON_SITE") {
+    const booking = await prisma.booking.create({
+      data: {
+        clientId: client.id,
+        salonId,
+        serviceId,
+        date: new Date(date),
+        durationMin: service.durationMin,
+        notes,
+        status: "CONFIRMED",
+      },
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: client.id,
+        bookingId: booking.id,
+        type: "BOOKING_CONFIRMATION",
+        title: "Réservation confirmée",
+        message: "Votre rendez-vous a bien été confirmé. Réglez directement sur place.",
+      },
+    });
+
+    return NextResponse.json({ bookingId: booking.id, confirmed: true });
   }
 
   const booking = await prisma.booking.create({

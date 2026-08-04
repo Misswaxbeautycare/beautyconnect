@@ -20,6 +20,7 @@ interface BookingCalendarProps {
   services: Service[];
   // créneaux déjà réservés — récupérés côté serveur, format ISO
   bookedSlots: string[];
+  onlinePayment: boolean;
   openHour?: number;
   closeHour?: number;
 }
@@ -28,6 +29,7 @@ export function BookingCalendar({
   salonId,
   services,
   bookedSlots,
+  onlinePayment,
   openHour = 9,
   closeHour = 18,
 }: BookingCalendarProps) {
@@ -37,6 +39,7 @@ export function BookingCalendar({
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
@@ -56,7 +59,7 @@ export function BookingCalendar({
     return result;
   }, [selectedDay, selectedService, bookedSet, openHour, closeHour]);
 
-  async function confirmBooking(paymentType: "DEPOSIT" | "FULL") {
+  async function confirmBooking(paymentType: "DEPOSIT" | "FULL" | "ON_SITE") {
     if (!selectedService || !selectedSlot) return;
     setError(null);
     setLoading(true);
@@ -88,6 +91,12 @@ export function BookingCalendar({
             ? data.error
             : "Impossible de finaliser la réservation. Réessayez."
         );
+        setLoading(false);
+        return;
+      }
+
+      if (data.confirmed) {
+        setConfirmed(true);
         setLoading(false);
         return;
       }
@@ -167,22 +176,41 @@ export function BookingCalendar({
         )}
       </div>
 
-      {selectedService && selectedSlot && (
+      {selectedService && selectedSlot && !confirmed && (
         <div className="mt-6 border-t border-beige-dark pt-6">
           {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              variant="outline"
-              className="flex-1"
-              disabled={loading}
-              onClick={() => confirmBooking("DEPOSIT")}
-            >
-              Réserver avec acompte ({selectedService.depositPct}%)
-            </Button>
-            <Button className="flex-1" disabled={loading} onClick={() => confirmBooking("FULL")}>
-              Payer en totalité
-            </Button>
-          </div>
+          {onlinePayment ? (
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={loading}
+                onClick={() => confirmBooking("DEPOSIT")}
+              >
+                Réserver avec acompte ({selectedService.depositPct}%)
+              </Button>
+              <Button className="flex-1" disabled={loading} onClick={() => confirmBooking("FULL")}>
+                Payer en totalité
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <p className="mb-3 text-xs text-noir/50">
+                Réservation à régler directement sur place, en espèces ou par carte.
+              </p>
+              <Button className="w-full" disabled={loading} onClick={() => confirmBooking("ON_SITE")}>
+                {loading ? "Confirmation..." : "Confirmer le rendez-vous"}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {confirmed && (
+        <div className="mt-6 border-t border-beige-dark pt-6">
+          <p className="text-sm font-medium text-green-700">
+            Rendez-vous confirmé ! Vous réglerez directement sur place.
+          </p>
         </div>
       )}
     </div>

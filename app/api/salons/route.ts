@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { salonSchema } from "@/lib/validations";
+import { defaultPlan, getEffectivePlan } from "@/lib/subscription-plans";
 
 function slugify(text: string) {
   return text
@@ -35,8 +36,6 @@ export async function GET() {
 
   return NextResponse.json({ salon });
 }
-
-const MAX_PHOTOS = 5;
 
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient();
@@ -74,9 +73,12 @@ export async function PATCH(req: NextRequest) {
   const logoUrl: string | null = typeof body.logoUrl === "string" ? body.logoUrl : salon.logoUrl;
 
   const totalPhotos = keepPhotoIds.length + newPhotoUrls.length;
-  if (totalPhotos > MAX_PHOTOS) {
+  const plan = getEffectivePlan(salon);
+  if (totalPhotos > plan.maxPhotos) {
     return NextResponse.json(
-      { error: `Vous ne pouvez pas dépasser ${MAX_PHOTOS} photos au total.` },
+      {
+        error: `Votre formule "${plan.name}" est limitée à ${plan.maxPhotos} photos. Passez à une formule supérieure pour en ajouter davantage.`,
+      },
       { status: 400 }
     );
   }
@@ -143,9 +145,9 @@ export async function POST(req: NextRequest) {
 
   const { name, description, address, city, postalCode, phone, categoryIds } = parsed.data;
   const photoUrls: string[] = Array.isArray(body.photoUrls) ? body.photoUrls : [];
-  if (photoUrls.length > MAX_PHOTOS) {
+  if (photoUrls.length > defaultPlan.maxPhotos) {
     return NextResponse.json(
-      { error: `Vous ne pouvez pas dépasser ${MAX_PHOTOS} photos au total.` },
+      { error: `Vous ne pouvez pas dépasser ${defaultPlan.maxPhotos} photos au total.` },
       { status: 400 }
     );
   }

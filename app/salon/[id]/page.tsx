@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { formatDate } from "@/lib/utils";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 export default async function SalonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,6 +23,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
   if (!salon) notFound();
 
   const bookedSlots = salon.bookings.map((b: (typeof salon.bookings)[number]) => b.date.toISOString());
+  const plan = getEffectivePlan(salon);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
@@ -67,6 +69,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
               depositPct: s.depositPct,
             }))}
             bookedSlots={bookedSlots}
+            onlinePayment={plan.onlinePayment}
           />
         </div>
       </div>

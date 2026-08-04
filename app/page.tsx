@@ -3,6 +3,7 @@ import { CalendarCheck, ShieldCheck, MessageSquareText, Search, ArrowUpRight, Sp
 import { prisma } from "@/lib/prisma";
 import { categories } from "@/lib/categories";
 import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 const heroServices = ["Coiffure", "Esthétique", "Onglerie", "Spa", "Massage"];
 
@@ -23,6 +24,7 @@ async function getRecommandes(): Promise<SalonCardData[]> {
           salon.reviews.length > 0
             ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
             : null;
+        const plan = getEffectivePlan(salon);
         return {
           id: salon.id,
           name: salon.name,
@@ -31,10 +33,23 @@ async function getRecommandes(): Promise<SalonCardData[]> {
           categorieLabel: salon.categories[0]?.category.name ?? "",
           note: noteMoyenne,
           nombreAvis: salon.reviews.length,
+          priority: plan.priorityPlacement ? 1 : 0,
         };
       })
-      .sort((a, b) => (b.note ?? 0) - (a.note ?? 0))
-      .slice(0, 6);
+      .sort((a, b) => {
+        if (b.priority !== a.priority) return b.priority - a.priority;
+        return (b.note ?? 0) - (a.note ?? 0);
+      })
+      .slice(0, 6)
+      .map((salon) => ({
+        id: salon.id,
+        name: salon.name,
+        city: salon.city,
+        coverUrl: salon.coverUrl,
+        categorieLabel: salon.categorieLabel,
+        note: salon.note,
+        nombreAvis: salon.nombreAvis,
+      }));
   } catch (err) {
     // Dégradation silencieuse : la page d'accueil reste utilisable même si
     // la base est momentanément indisponible, on masque juste cette section.

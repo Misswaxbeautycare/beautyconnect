@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { SalonEditForm } from "@/components/pro/SalonEditForm";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 export default async function ModifierSalonPage() {
   const supabase = await createClient();
@@ -22,6 +23,7 @@ export default async function ModifierSalonPage() {
   if (!salon) redirect("/pro/salon/creer");
 
   const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const plan = getEffectivePlan(salon);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -29,7 +31,7 @@ export default async function ModifierSalonPage() {
       <p className="mt-2 text-sm text-noir/60">
         Mettez à jour les informations et les photos de votre salon.
       </p>
-      <SalonEditForm categories={categories} salon={salon} />
+      <SalonEditForm categories={categories} salon={salon} maxPhotos={plan.maxPhotos} />
     </div>
   );
 }
