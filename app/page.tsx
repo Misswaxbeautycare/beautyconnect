@@ -9,7 +9,7 @@ const heroServices = ["Coiffure", "Esthétique", "Onglerie", "Spa", "Massage"];
 async function getRecommandes(): Promise<SalonCardData[]> {
   try {
     const salonsRaw = await prisma.salon.findMany({
-      where: { isActive: true, isApproved: true },
+      where: { isActive: true },
       include: {
         categories: { include: { category: true } },
         reviews: { select: { rating: true } },

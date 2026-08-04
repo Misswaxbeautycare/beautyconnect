@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
+import { ContactsManager } from "@/components/pro/ContactsManager";
 import { formatDate, formatPrice } from "@/lib/utils";
 
 interface ClientSummary {
@@ -23,6 +24,11 @@ export default async function ClientsFidelesPage() {
 
   const salon = await prisma.salon.findUnique({ where: { ownerId: dbUser.id } });
   if (!salon) redirect("/pro/salon/creer");
+
+  const contacts = await prisma.contact.findMany({
+    where: { salonId: salon.id },
+    orderBy: { name: "asc" },
+  });
 
   const bookings = await prisma.booking.findMany({
     where: {
@@ -67,6 +73,10 @@ export default async function ClientsFidelesPage() {
       <p className="mt-1 text-noir/60">
         Classées par nombre de visites dans votre salon.
       </p>
+
+      <div className="mt-10">
+        <ContactsManager initialContacts={contacts} />
+      </div>
 
       {clients.length === 0 ? (
         <p className="mt-10 text-noir/40">Aucune cliente pour le moment.</p>

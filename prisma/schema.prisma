@@ -129,6 +129,7 @@ model Salon {
   favorites      Favorite[]
   products       Product[]
   promotions     Promotion[]
+  contacts       Contact[]
 
   @@map("salons")
 }
@@ -382,4 +383,22 @@ model Notification {
   createdAt DateTime         @default(now())
 
   @@map("notifications")
+}
+
+// Carnet de contacts d'un salon — permet au professionnel d'ajouter une
+// cliente directement (nom, téléphone, email), sans passer par un
+// rendez-vous. Distinct des rendez-vous/clients issus des réservations.
+model Contact {
+  id        String   @id @default(uuid())
+  salonId   String
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  name      String
+  phone     String?
+  email     String?
+  notes     String?
+
+  createdAt DateTime @default(now())
+
+  @@map("contacts")
 }
