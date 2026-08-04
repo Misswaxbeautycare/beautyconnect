@@ -116,6 +116,7 @@ model Salon {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   subscriptionStatus   String?   // trialing, active, past_due, canceled, unpaid, incomplete...
+  subscriptionPlan     String?   // essentiel, signature, prestige
   trialEndsAt          DateTime?
 
   isApproved     Boolean  @default(false)

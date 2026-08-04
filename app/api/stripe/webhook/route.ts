@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
           data: {
             stripeSubscriptionId: subscriptionId,
             subscriptionStatus: subscription.status,
+            subscriptionPlan: session.metadata.plan ?? null,
             trialEndsAt: subscription.trial_end
               ? new Date(subscription.trial_end * 1000)
               : null,
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
         where: { id: salonId },
         data: {
           subscriptionStatus: subscription.status,
+          subscriptionPlan: subscription.metadata?.plan ?? undefined,
           trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
         },
       });

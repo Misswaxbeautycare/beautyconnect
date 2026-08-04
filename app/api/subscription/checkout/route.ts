@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
+import { subscriptionPlans } from "@/lib/subscription-plans";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -14,10 +15,16 @@ export async function POST(req: NextRequest) {
   const salon = await prisma.salon.findUnique({ where: { ownerId: dbUser.id } });
   if (!salon) return NextResponse.json({ error: "Aucun salon configuré" }, { status: 404 });
 
-  const priceId = process.env.STRIPE_SUBSCRIPTION_PRICE_ID;
+  const body = await req.json().catch(() => ({}));
+  const plan = subscriptionPlans.find((p) => p.id === body.plan);
+  if (!plan) {
+    return NextResponse.json({ error: "Formule invalide." }, { status: 400 });
+  }
+
+  const priceId = process.env[plan.envVar];
   if (!priceId) {
     return NextResponse.json(
-      { error: "L'abonnement n'est pas encore configuré (STRIPE_SUBSCRIPTION_PRICE_ID manquant)." },
+      { error: `L'abonnement '${plan.name}' n'est pas encore configuré (${plan.envVar} manquant).` },
       { status: 500 }
     );
   }
@@ -45,9 +52,9 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
         trial_period_days: 7,
-        metadata: { salonId: salon.id },
+        metadata: { salonId: salon.id, plan: plan.id },
       },
-      metadata: { type: "subscription", salonId: salon.id },
+      metadata: { type: "subscription", salonId: salon.id, plan: plan.id },
       success_url: `${appUrl}/pro/abonnement?success=1`,
       cancel_url: `${appUrl}/pro/abonnement?cancelled=1`,
     });

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { SubscriptionActions } from "@/components/pro/SubscriptionActions";
+import { subscriptionPlans } from "@/lib/subscription-plans";
 import { formatDate } from "@/lib/utils";
 
 const statusLabels: Record<string, { label: string; className: string }> = {
@@ -26,9 +27,10 @@ export default async function AbonnementPage() {
   if (!salon) redirect("/pro/salon/creer");
 
   const status = salon.subscriptionStatus ? statusLabels[salon.subscriptionStatus] : null;
+  const planName = subscriptionPlans.find((p) => p.id === salon.subscriptionPlan)?.name;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="font-display text-3xl text-noir">Mon abonnement</h1>
       <p className="mt-1 text-noir/60">
         Accès à l&apos;espace professionnel Misswaxbeautycare.
@@ -38,7 +40,7 @@ export default async function AbonnementPage() {
         {status ? (
           <>
             <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${status.className}`}>
-              {status.label}
+              {status.label}{planName ? ` · ${planName}` : ""}
             </span>
             {salon.subscriptionStatus === "trialing" && salon.trialEndsAt && (
               <p className="mt-3 text-sm text-noir/60">
@@ -49,12 +51,16 @@ export default async function AbonnementPage() {
           </>
         ) : (
           <p className="text-sm text-noir/60">
-            Vous n&apos;avez pas encore d&apos;abonnement actif. Démarrez votre essai gratuit de 7
-            jours — sans engagement, annulable à tout moment avant la fin de l&apos;essai.
+            Vous n&apos;avez pas encore d&apos;abonnement actif. Choisissez une formule ci-dessous —
+            7 jours d&apos;essai gratuit, sans engagement, annulable à tout moment avant la fin de
+            l&apos;essai.
           </p>
         )}
 
-        <SubscriptionActions hasSubscription={Boolean(salon.stripeCustomerId)} />
+        <SubscriptionActions
+          hasSubscription={Boolean(salon.stripeCustomerId)}
+          currentPlan={salon.subscriptionPlan}
+        />
       </Card>
     </div>
   );
