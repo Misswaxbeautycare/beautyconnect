@@ -57,23 +57,39 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "eur",
-          product_data: { name: `${service.name} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})` },
-          unit_amount: Math.round(amount * 100),
-        },
-        quantity: 1,
-      },
-    ],
-    metadata: { bookingId: booking.id },
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/client/dashboard?booking=success`,
-    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/salon/${salonId}?booking=cancelled`,
-  });
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${req.nextUrl.protocol}//${req.nextUrl.host}`;
 
-  return NextResponse.json({ bookingId: booking.id, checkoutUrl: session.url });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: { name: `${service.name} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})` },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: { bookingId: booking.id },
+      success_url: `${appUrl}/client/dashboard?booking=success`,
+      cancel_url: `${appUrl}/salon/${salonId}?booking=cancelled`,
+    });
+
+    return NextResponse.json({ bookingId: booking.id, checkoutUrl: session.url });
+  } catch (err) {
+    console.error("Erreur Stripe lors de la création du paiement:", err);
+    // Le rendez-vous et le paiement PENDING restent en base pour trace,
+    // mais on renvoie une erreur claire au lieu de laisser planter la requête
+    // (ce qui provoquait une page d'erreur HTML illisible côté client).
+    return NextResponse.json(
+      {
+        error:
+          "Le paiement n'a pas pu être initialisé. Le compte Stripe du salon n'est peut-être pas encore configuré. Contactez le salon ou réessayez plus tard.",
+      },
+      { status: 502 }
+    );
+  }
 }
