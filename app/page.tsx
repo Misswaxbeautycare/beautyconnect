@@ -121,13 +121,13 @@ export default async function HomePage() {
             <div className="flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
               <Link
                 href="/recherche"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-or bg-or px-8 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:border-or-dark hover:text-white"
               >
                 Trouver un professionnel
               </Link>
               <Link
                 href="/pro/inscription"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-noir/15 px-8 py-3.5 font-semibold text-noir transition hover:bg-white"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir bg-white px-8 py-3.5 font-semibold text-noir transition hover:bg-noir hover:text-white"
               >
                 Je suis un professionnel
                 <ArrowUpRight size={16} />

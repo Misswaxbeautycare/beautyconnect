@@ -37,11 +37,12 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#0A0A0A",
+  colorScheme: "light" as const,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" style={{ colorScheme: "light" }}>
       <body className="overflow-x-hidden">
         <Navbar />
         <main className="min-h-screen overflow-x-hidden">{children}</main>
