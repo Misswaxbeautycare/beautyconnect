@@ -152,10 +152,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Assure l'existence du profil applicatif avec le rôle PROFESSIONAL
+  // Assure l'existence du profil applicatif avec le rôle PROFESSIONAL —
+  // sans écraser un rôle ADMIN existant.
+  const existingUser = await prisma.user.findUnique({ where: { authId: user.id } });
   const dbUser = await prisma.user.upsert({
     where: { authId: user.id },
-    update: { role: "PROFESSIONAL" },
+    update: existingUser?.role === "ADMIN" ? {} : { role: "PROFESSIONAL" },
     create: {
       authId: user.id,
       email: user.email ?? "",

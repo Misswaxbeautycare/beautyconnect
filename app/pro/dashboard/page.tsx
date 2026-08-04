@@ -16,9 +16,12 @@ export default async function ProDashboard() {
   // Certains comptes ont pu être créés côté Supabase Auth sans que le profil
   // applicatif (table users) ne soit créé (ancien bug d'inscription).
   // On répare automatiquement ici plutôt que de renvoyer silencieusement vers /login.
+  // Important : on ne force PAS le rôle sur PROFESSIONAL si la personne est
+  // déjà ADMIN, pour ne pas écraser cet accès à chaque visite du tableau de bord.
+  const existing = await prisma.user.findUnique({ where: { authId: user.id } });
   const dbUser = await prisma.user.upsert({
     where: { authId: user.id },
-    update: { role: "PROFESSIONAL" },
+    update: existing?.role === "ADMIN" ? {} : { role: "PROFESSIONAL" },
     create: {
       authId: user.id,
       email: user.email ?? "",
