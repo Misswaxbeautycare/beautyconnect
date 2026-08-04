@@ -20,7 +20,6 @@ interface BookingCalendarProps {
   services: Service[];
   // créneaux déjà réservés — récupérés côté serveur, format ISO
   bookedSlots: string[];
-  onlinePayment: boolean;
   openHour?: number;
   closeHour?: number;
 }
@@ -29,7 +28,6 @@ export function BookingCalendar({
   salonId,
   services,
   bookedSlots,
-  onlinePayment,
   openHour = 9,
   closeHour = 18,
 }: BookingCalendarProps) {
@@ -179,30 +177,28 @@ export function BookingCalendar({
       {selectedService && selectedSlot && !confirmed && (
         <div className="mt-6 border-t border-beige-dark pt-6">
           {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-          {onlinePayment ? (
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                variant="outline"
-                className="flex-1"
-                disabled={loading}
-                onClick={() => confirmBooking("DEPOSIT")}
-              >
-                Réserver avec acompte ({selectedService.depositPct}%)
-              </Button>
-              <Button className="flex-1" disabled={loading} onClick={() => confirmBooking("FULL")}>
-                Payer en totalité
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <p className="mb-3 text-xs text-noir/50">
-                Réservation à régler directement sur place, en espèces ou par carte.
-              </p>
-              <Button className="w-full" disabled={loading} onClick={() => confirmBooking("ON_SITE")}>
-                {loading ? "Confirmation..." : "Confirmer le rendez-vous"}
-              </Button>
-            </div>
-          )}
+          <p className="mb-3 text-sm font-medium text-noir/70">Comment souhaitez-vous régler ?</p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={loading}
+              onClick={() => confirmBooking("DEPOSIT")}
+            >
+              Acompte en ligne ({selectedService.depositPct}%)
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={loading}
+              onClick={() => confirmBooking("FULL")}
+            >
+              Payer en ligne (totalité)
+            </Button>
+            <Button className="flex-1" disabled={loading} onClick={() => confirmBooking("ON_SITE")}>
+              Payer sur place
+            </Button>
+          </div>
         </div>
       )}
 
