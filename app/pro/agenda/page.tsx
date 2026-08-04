@@ -31,7 +31,7 @@ export default async function AgendaPage() {
   if (!user) redirect("/login");
 
   const dbUser = await prisma.user.findUnique({ where: { authId: user.id } });
-  if (!dbUser || dbUser.role !== "PROFESSIONAL") redirect("/login");
+  if (!dbUser || (dbUser.role !== "PROFESSIONAL" && dbUser.role !== "ADMIN")) redirect("/login");
 
   const salon = await prisma.salon.findUnique({
     where: { ownerId: dbUser.id },

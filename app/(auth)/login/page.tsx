@@ -43,7 +43,8 @@ function LoginForm() {
     try {
       const res = await fetch("/api/users");
       const body = await res.json();
-      router.push(body.role === "PROFESSIONAL" ? "/pro/dashboard" : "/client/dashboard");
+      const isPro = body.role === "PROFESSIONAL" || body.role === "ADMIN";
+      router.push(isPro ? "/pro/dashboard" : "/client/dashboard");
     } catch {
       router.push("/client/dashboard");
     }

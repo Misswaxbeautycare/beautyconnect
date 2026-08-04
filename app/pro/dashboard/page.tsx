@@ -104,6 +104,14 @@ export default async function ProDashboard() {
           >
             Voir l&apos;agenda complet
           </Link>
+          {dbUser.role === "ADMIN" && (
+            <Link
+              href="/admin/dashboard"
+              className="rounded-full bg-or px-6 py-3 text-sm font-semibold text-noir hover:bg-or-dark hover:text-white transition"
+            >
+              Administration
+            </Link>
+          )}
         </div>
       </div>
 
