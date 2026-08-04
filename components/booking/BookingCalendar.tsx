@@ -114,7 +114,7 @@ export function BookingCalendar({
   }
 
   return (
-    <div className="rounded-2xl border border-beige-dark p-6">
+    <div className="rounded-2xl border border-beige-dark bg-white p-6">
       {/* Choix de la prestation */}
       <p className="text-sm font-medium text-noir/70">Prestation</p>
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
