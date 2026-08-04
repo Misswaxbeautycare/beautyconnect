@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ServicesList } from "@/components/pro/ServicesList";
+import { ServiceTemplatesPicker } from "@/components/pro/ServiceTemplatesPicker";
 
 export default async function PrestationsPage() {
   const supabase = await createClient();
@@ -44,6 +45,11 @@ export default async function PrestationsPage() {
           + Ajouter
         </Link>
       </div>
+
+      <div className="mt-8">
+        <ServiceTemplatesPicker />
+      </div>
+
       <ServicesList services={services} />
     </div>
   );
