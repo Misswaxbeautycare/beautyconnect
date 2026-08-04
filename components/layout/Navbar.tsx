@@ -29,7 +29,7 @@ export function Navbar() {
           <Link href="/login" className="hidden text-sm text-noir/70 hover:text-or md:block">
             Connexion
           </Link>
-          <Link href="/register">
+          <Link href="/recherche">
             <Button size="sm">Réserver</Button>
           </Link>
         </div>
