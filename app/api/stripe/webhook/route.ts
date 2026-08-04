@@ -17,6 +17,26 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+
+    if (session.mode === "subscription" && session.metadata?.type === "subscription") {
+      const salonId = session.metadata.salonId;
+      const subscriptionId = session.subscription as string;
+      if (salonId && subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await prisma.salon.update({
+          where: { id: salonId },
+          data: {
+            stripeSubscriptionId: subscriptionId,
+            subscriptionStatus: subscription.status,
+            trialEndsAt: subscription.trial_end
+              ? new Date(subscription.trial_end * 1000)
+              : null,
+          },
+        });
+      }
+      return NextResponse.json({ received: true });
+    }
+
     const bookingId = session.metadata?.bookingId;
     if (bookingId) {
       await prisma.booking.update({
@@ -42,6 +62,31 @@ export async function POST(req: NextRequest) {
         // TODO : déclencher l'envoi d'email (Resend) + programmer les rappels 24h/2h
         // via une tâche planifiée (Vercel Cron) qui scanne les bookings à venir.
       }
+    }
+  }
+
+  if (event.type === "customer.subscription.updated" || event.type === "customer.subscription.created") {
+    const subscription = event.data.object as Stripe.Subscription;
+    const salonId = subscription.metadata?.salonId;
+    if (salonId) {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: {
+          subscriptionStatus: subscription.status,
+          trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        },
+      });
+    }
+  }
+
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object as Stripe.Subscription;
+    const salonId = subscription.metadata?.salonId;
+    if (salonId) {
+      await prisma.salon.update({
+        where: { id: salonId },
+        data: { subscriptionStatus: "canceled" },
+      });
     }
   }
 

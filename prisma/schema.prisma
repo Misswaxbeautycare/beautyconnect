@@ -113,6 +113,11 @@ model Salon {
   phone          String?
   commissionRate Float    @default(15) // % prélevé par la plateforme
 
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?   // trialing, active, past_due, canceled, unpaid, incomplete...
+  trialEndsAt          DateTime?
+
   isApproved     Boolean  @default(false)
   isActive       Boolean  @default(true)
 
