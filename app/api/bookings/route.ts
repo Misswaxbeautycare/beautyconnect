@@ -3,10 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema } from "@/lib/validations";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
-// Crée une réservation. Le client choisit toujours librement entre payer en
-// ligne (acompte ou intégral, via Stripe) ou régler sur place, quelle que
-// soit la formule d'abonnement du salon.
+// Crée une réservation. Si le salon a le paiement en ligne (formule Signature
+// ou Prestige), le client peut choisir acompte, paiement intégral, ou sur
+// place. Sinon (formule Essentiel), seul le paiement sur place est proposé.
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -24,6 +25,14 @@ export async function POST(req: NextRequest) {
   const salon = await prisma.salon.findUnique({ where: { id: salonId } });
   if (!client || !service || !salon) {
     return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 });
+  }
+
+  const plan = getEffectivePlan(salon);
+  if (paymentType !== "ON_SITE" && !plan.onlinePayment) {
+    return NextResponse.json(
+      { error: "Ce salon ne propose pas encore le paiement en ligne." },
+      { status: 400 }
+    );
   }
 
   // Empêche le double-booking sur le même créneau

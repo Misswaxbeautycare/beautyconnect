@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/utils";
+import Link from "next/link";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -48,6 +49,13 @@ export default async function AdminDashboard() {
         Modules à venir dans cet espace : gestion des utilisateurs, validation des salons,
         gestion des catégories, gestion des commissions par salon, historique des paiements.
       </p>
+
+      <Link
+        href="/admin/salons"
+        className="mt-4 inline-block rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
+      >
+        Gérer les formules d&apos;abonnement des salons
+      </Link>
     </div>
   );
 }

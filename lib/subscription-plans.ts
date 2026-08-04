@@ -26,13 +26,13 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     price: 19,
     envVar: "STRIPE_PRICE_ESSENTIEL",
     maxPhotos: 5,
-    onlinePayment: true,
+    onlinePayment: false,
     priorityPlacement: false,
     prioritySupport: false,
     features: [
       "Agenda et prise de rendez-vous en ligne",
       "Jusqu'à 5 photos de salon",
-      "Paiement en ligne ou sur place, au choix de la cliente",
+      "Réservations réglées sur place",
       "Clientes fidèles et carnet de contacts",
       "Rappels automatiques par email",
     ],
@@ -50,6 +50,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     features: [
       "Tout Essentiel",
       "Jusqu'à 10 photos de salon",
+      "Paiement en ligne (acompte ou intégral) en plus du paiement sur place",
     ],
   },
   {

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
+import { ShareAppButton } from "@/components/ShareAppButton";
 import Link from "next/link";
 
 export default async function ClientDashboard() {
@@ -31,14 +32,17 @@ export default async function ClientDashboard() {
           <h1 className="font-display text-3xl text-noir">Bonjour {dbUser.firstName} 👋</h1>
           <p className="mt-1 text-noir/60">Voici vos rendez-vous et vos favoris.</p>
         </div>
-        {dbUser.role === "PROFESSIONAL" && (
-          <Link
-            href="/pro/dashboard"
-            className="shrink-0 rounded-full bg-noir text-white px-5 py-2.5 text-sm font-semibold hover:bg-neutral-800 transition"
-          >
-            Mon espace pro
-          </Link>
-        )}
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {dbUser.role === "PROFESSIONAL" && (
+            <Link
+              href="/pro/dashboard"
+              className="rounded-full bg-noir text-white px-5 py-2.5 text-sm font-semibold hover:bg-neutral-800 transition"
+            >
+              Mon espace pro
+            </Link>
+          )}
+          <ShareAppButton label="Partager" />
+        </div>
       </div>
 
       <h2 className="mt-10 font-display text-xl text-noir">Mes rendez-vous</h2>
