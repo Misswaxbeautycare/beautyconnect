@@ -117,13 +117,13 @@ export function BookingCalendar({
     <div className="rounded-2xl border border-beige-dark p-6">
       {/* Choix de la prestation */}
       <p className="text-sm font-medium text-noir/70">Prestation</p>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         {services.map((s) => (
           <button
             key={s.id}
             onClick={() => { setSelectedService(s); setSelectedSlot(null); }}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm transition-colors",
+              "shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition-colors",
               selectedService?.id === s.id
                 ? "border-or bg-or text-noir"
                 : "border-beige-dark text-noir/70 hover:border-or"

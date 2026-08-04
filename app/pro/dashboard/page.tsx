@@ -82,19 +82,19 @@ export default async function ProDashboard() {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/pro/salon/modifier"
-            className="rounded-full border border-noir/15 text-noir px-6 py-3 text-sm font-semibold hover:bg-beige transition"
+            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
           >
             Modifier mon salon
           </Link>
           <Link
             href="/pro/services"
-            className="rounded-full border border-noir/15 text-noir px-6 py-3 text-sm font-semibold hover:bg-beige transition"
+            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
           >
             Mes prestations
           </Link>
           <Link
             href="/pro/abonnement"
-            className="rounded-full border border-noir/15 text-noir px-6 py-3 text-sm font-semibold hover:bg-beige transition"
+            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
           >
             Mon abonnement
           </Link>
