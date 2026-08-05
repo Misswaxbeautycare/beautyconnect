@@ -47,6 +47,13 @@ export function QuickBookingModal({
 
   const selectedService = services.find((s) => s.id === serviceId) ?? null;
 
+  // Liste de créneaux fixes toutes les 30 minutes, comme sur la page du salon.
+  const timeSlots: string[] = [];
+  for (let h = 9; h < 18; h++) {
+    timeSlots.push(`${String(h).padStart(2, "0")}:00`);
+    timeSlots.push(`${String(h).padStart(2, "0")}:30`);
+  }
+
   useEffect(() => {
     if (!open || fixedSalonId) return;
     fetch("/api/public/salons")
@@ -151,16 +158,16 @@ export function QuickBookingModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-noir/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-noir/50 p-4 py-8 sm:items-center">
+      <div className="w-full max-w-lg rounded-3xl bg-white p-6 pt-7 sm:p-8">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="font-display text-2xl text-noir">Réserve ton créneau</h2>
-            <p className="mt-1 text-sm text-noir/60">
-              {fixedSalonName ? `Chez ${fixedSalonName}` : "Choisis ton rendez-vous"}
+            <h2 className="font-display text-2xl text-noir">Prendre rendez-vous</h2>
+            <p className="mt-1.5 text-sm text-noir/60">
+              {fixedSalonName ? `Chez ${fixedSalonName}` : "Choisis ton salon et ton créneau"}
             </p>
           </div>
-          <button type="button" onClick={onClose} className="text-noir/40 hover:text-noir">
+          <button type="button" onClick={onClose} className="shrink-0 text-noir/40 hover:text-noir">
             <X size={22} />
           </button>
         </div>
@@ -204,27 +211,35 @@ export function QuickBookingModal({
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-sm text-noir/70">Jour</label>
-              <input
-                type="date"
-                value={date}
-                min={new Date().toISOString().split("T")[0]}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-noir/70">Heure</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                required
-                className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
-              />
+          <div>
+            <label className="text-sm text-noir/70">Jour</label>
+            <input
+              type="date"
+              value={date}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => { setDate(e.target.value); setTime(""); }}
+              required
+              className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm text-noir/70">Heure</label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {timeSlots.map((slot) => (
+                <button
+                  key={slot}
+                  type="button"
+                  onClick={() => setTime(slot)}
+                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                    time === slot
+                      ? "border-or bg-or text-noir"
+                      : "border-beige-dark text-noir/70 hover:border-or"
+                  }`}
+                >
+                  {slot.replace(":", "h")}
+                </button>
+              ))}
             </div>
           </div>
 
