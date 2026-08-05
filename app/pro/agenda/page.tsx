@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
+import { RequestReviewButton } from "@/components/pro/RequestReviewButton";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
@@ -58,6 +59,22 @@ export default async function AgendaPage() {
     orderBy: { date: "asc" },
   });
 
+  // Rendez-vous passés récents (30 derniers jours) n'ayant pas encore d'avis,
+  // pour permettre au professionnel d'en demander un facilement.
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const pastBookingsNeedingReview = await prisma.booking.findMany({
+    where: {
+      salonId: salon.id,
+      date: { gte: thirtyDaysAgo, lt: new Date() },
+      status: "CONFIRMED",
+      review: null,
+    },
+    include: { client: true, service: true },
+    orderBy: { date: "desc" },
+    take: 10,
+  });
+
   const groupes = bookings.reduce<Record<string, typeof bookings>>((acc, b) => {
     const jour = new Date(b.date).toLocaleDateString("fr-BE", {
       weekday: "long",
@@ -96,6 +113,28 @@ export default async function AgendaPage() {
         Rappel envoyé automatiquement à chaque cliente : merci de bien respecter vos rendez-vous
         (prévenez le salon en cas d&apos;empêchement).
       </p>
+
+      {pastBookingsNeedingReview.length > 0 && (
+        <div className="mt-8">
+          <h2 className="font-display text-lg text-noir">Demander un avis</h2>
+          <p className="mt-1 text-xs text-noir/50">
+            Rendez-vous récents sans avis — copiez un message à envoyer à la cliente.
+          </p>
+          <div className="mt-3 space-y-2">
+            {pastBookingsNeedingReview.map((b: (typeof pastBookingsNeedingReview)[number]) => (
+              <Card key={b.id} className="flex items-center justify-between gap-4 p-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-noir">
+                    {b.client ? `${b.client.firstName} ${b.client.lastName}` : b.guestName ?? "Cliente"}
+                  </p>
+                  <p className="text-xs text-noir/50">{b.service.name} · {formatDate(b.date)}</p>
+                </div>
+                <RequestReviewButton />
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-10 space-y-8">
         {Object.entries(groupes).map(([jour, bookingsDuJour]) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
@@ -157,7 +158,7 @@ export function QuickBookingModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-noir/50 p-4 py-8 sm:items-center">
       <div className="w-full max-w-lg rounded-3xl bg-white p-6 pt-7 sm:p-8">
         <div className="flex items-start justify-between">
@@ -311,6 +312,7 @@ export function QuickBookingModal({
           </p>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
