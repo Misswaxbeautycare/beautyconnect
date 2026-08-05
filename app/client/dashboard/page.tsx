@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { ShareAppButton } from "@/components/ShareAppButton";
+import { InstallAppButton } from "@/components/InstallAppButton";
+import { ReviewForm } from "@/components/ReviewForm";
 import Link from "next/link";
 
 export default async function ClientDashboard() {
@@ -16,7 +18,7 @@ export default async function ClientDashboard() {
 
   const bookings = await prisma.booking.findMany({
     where: { clientId: dbUser.id },
-    include: { salon: true, service: true, payment: true },
+    include: { salon: true, service: true, payment: true, review: true },
     orderBy: { date: "desc" },
   });
 
@@ -42,20 +44,25 @@ export default async function ClientDashboard() {
             </Link>
           )}
           <ShareAppButton label="Partager" />
+          <InstallAppButton />
         </div>
       </div>
 
       <h2 className="mt-10 font-display text-xl text-noir">Mes rendez-vous</h2>
       <div className="mt-4 space-y-3">
         {bookings.map((b: (typeof bookings)[number]) => (
-          <Card key={b.id} className="flex items-center justify-between p-5">
+          <Card key={b.id} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-medium text-noir">{b.service.name}</p>
               <p className="text-sm text-noir/60">{b.salon.name} — {formatDate(b.date)}</p>
             </div>
-            <div className="text-right">
-              <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
-              {b.payment && <p className="mt-1 text-sm text-noir/60">{formatPrice(Number(b.payment.amount))}</p>}
+            <div className="flex flex-col items-start gap-2 sm:items-end">
+              <div className="text-right">
+                <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
+                {b.payment && <p className="mt-1 text-sm text-noir/60">{formatPrice(Number(b.payment.amount))}</p>}
+              </div>
+              {b.date < new Date() && !b.review && <ReviewForm bookingId={b.id} />}
+              {b.review && <p className="text-xs text-noir/40">Avis déjà envoyé</p>}
             </div>
           </Card>
         ))}

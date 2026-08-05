@@ -14,22 +14,22 @@ export function Footer() {
         <div>
           <p className="mb-3 text-sm font-medium text-or">Clientes</p>
           <ul className="space-y-2 text-sm text-beige/70">
-            <li><Link href="/recherche">Trouver un professionnel</Link></li>
-            <li><Link href="/register">Créer un compte</Link></li>
+            <li><Link href="/recherche" className="hover:text-white hover:underline">Trouver un professionnel</Link></li>
+            <li><Link href="/register" className="hover:text-white hover:underline">Créer un compte</Link></li>
           </ul>
         </div>
         <div>
           <p className="mb-3 text-sm font-medium text-or">Professionnels</p>
           <ul className="space-y-2 text-sm text-beige/70">
-            <li><Link href="/pro/dashboard">Gérer mon salon</Link></li>
-            <li><Link href="/register">Rejoindre la plateforme</Link></li>
+            <li><Link href="/pro/dashboard" className="hover:text-white hover:underline">Gérer mon salon</Link></li>
+            <li><Link href="/register" className="hover:text-white hover:underline">Rejoindre la plateforme</Link></li>
           </ul>
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-or">Misswaxbeautycare</p>
+          <p className="mb-3 text-sm font-medium text-or">BeautyConnect</p>
           <ul className="space-y-2 text-sm text-beige/70">
-            <li>À propos</li>
-            <li>Contact</li>
+            <li><Link href="/a-propos" className="hover:text-white hover:underline">À propos</Link></li>
+            <li><Link href="/contact" className="hover:text-white hover:underline">Contact</Link></li>
           </ul>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { categories } from "@/lib/categories";
 import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
 import { getEffectivePlan } from "@/lib/subscription-plans";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 const heroServices = ["Coiffure", "Esthétique", "Onglerie", "Spa", "Massage"];
 
@@ -132,6 +133,10 @@ export default async function HomePage() {
                 Je suis un professionnel
                 <ArrowUpRight size={16} />
               </Link>
+            </div>
+
+            <div className="mt-4 flex justify-center lg:justify-start">
+              <InstallAppButton />
             </div>
           </div>
 

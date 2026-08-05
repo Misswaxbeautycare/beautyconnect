@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CopySalonLink } from "@/components/pro/CopySalonLink";
 import { ShareAppButton } from "@/components/ShareAppButton";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { startOfMonth, startOfDay, endOfDay } from "date-fns";
 
@@ -118,6 +119,7 @@ export default async function ProDashboard() {
       <div className="flex flex-wrap items-center gap-3">
         <CopySalonLink salonId={salon.id} />
         <ShareAppButton />
+        <InstallAppButton />
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">

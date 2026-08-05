@@ -9,7 +9,7 @@ const links = [
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-beige-dark bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-beige-dark bg-white backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="font-display text-xl tracking-tight text-noir">
           Beauty<span className="text-or">Connect</span>
