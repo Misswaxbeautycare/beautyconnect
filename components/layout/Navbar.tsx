@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import { ReserverButton } from "@/components/layout/ReserverButton";
 
 const links = [
   { href: "/recherche", label: "Trouver un pro" },
@@ -29,9 +29,7 @@ export function Navbar() {
           <Link href="/login" className="hidden text-sm text-noir/70 hover:text-or md:block">
             Connexion
           </Link>
-          <Link href="/recherche">
-            <Button size="sm">Réserver</Button>
-          </Link>
+          <ReserverButton />
         </div>
       </div>
     </header>
