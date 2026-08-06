@@ -12,11 +12,14 @@ interface RecherchePageProps {
     q?: string;
     categorie?: string;
     ville?: string;
+    prixMax?: string;
+    disponible?: string;
   }>;
 }
 
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
-  const { q, categorie, ville } = await searchParams;
+  const { q, categorie, ville, prixMax, disponible } = await searchParams;
+  const prixMaxNum = prixMax ? Number(prixMax) : null;
 
   let salons: SalonCardData[] = [];
   let errorMessage: string | null = null;
@@ -38,11 +41,21 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
             ? { categories: { some: { category: { slug: categorie } } } }
             : {},
           ville ? { city: { contains: ville, mode: "insensitive" } } : {},
+          prixMaxNum
+            ? { services: { some: { isActive: true, price: { lte: prixMaxNum } } } }
+            : {},
         ],
       },
       include: {
         categories: { include: { category: true } },
         reviews: { select: { rating: true } },
+        bookings: {
+          where: {
+            status: { in: ["CONFIRMED", "PENDING"] },
+            date: { gte: new Date(), lt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
+          },
+          select: { id: true },
+        },
       },
       take: 30,
     });
@@ -54,6 +67,9 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
             ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
             : null;
         const plan = getEffectivePlan(salon);
+        // Approximation : un salon avec peu de rendez-vous déjà pris dans
+        // les 48h a de bonnes chances d'avoir un créneau proche disponible.
+        const disponibiliteImmediate = salon.bookings.length < 20;
         return {
           id: salon.id,
           name: salon.name,
@@ -63,8 +79,10 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
           note: noteMoyenne,
           nombreAvis: salon.reviews.length,
           priority: plan.priorityPlacement ? 1 : 0,
+          disponibiliteImmediate,
         };
       })
+      .filter((s) => (disponible === "1" ? s.disponibiliteImmediate : true))
       .sort((a, b) => {
         if (b.priority !== a.priority) return b.priority - a.priority;
         return (b.note ?? 0) - (a.note ?? 0);
@@ -99,7 +117,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         </Link>
       </div>
 
-      <div className="px-6 pb-6">
+      <div className="px-6 pb-4">
         <form className="flex items-center gap-3 rounded-full border border-beige-dark bg-white pl-5 pr-1.5 py-1.5 shadow-sm">
           <Search size={18} className="shrink-0 text-noir/40" />
           <input
@@ -117,6 +135,32 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
           </button>
         </form>
       </div>
+
+      <form className="flex flex-wrap items-center gap-3 px-6 pb-6">
+        {q && <input type="hidden" name="q" value={q} />}
+        {categorie && <input type="hidden" name="categorie" value={categorie} />}
+        <select
+          name="prixMax"
+          defaultValue={prixMax ?? ""}
+          className="rounded-full border border-beige-dark bg-white px-4 py-2 text-sm text-noir/70 outline-none focus:border-or"
+        >
+          <option value="">Tous les prix</option>
+          <option value="20">Jusqu'à 20€</option>
+          <option value="40">Jusqu'à 40€</option>
+          <option value="60">Jusqu'à 60€</option>
+          <option value="100">Jusqu'à 100€</option>
+        </select>
+        <label className="flex items-center gap-2 rounded-full border border-beige-dark bg-white px-4 py-2 text-sm text-noir/70">
+          <input type="checkbox" name="disponible" value="1" defaultChecked={disponible === "1"} />
+          Disponible bientôt
+        </label>
+        <button
+          type="submit"
+          className="rounded-full bg-noir px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
+        >
+          Filtrer
+        </button>
+      </form>
 
       <section className="pb-8">
         <div className="flex gap-3 overflow-x-auto px-6 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

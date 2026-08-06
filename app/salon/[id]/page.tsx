@@ -12,6 +12,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
     include: {
       services: { where: { isActive: true } },
       categories: { include: { category: true } },
+      photos: { orderBy: { order: "asc" } },
       reviews: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 10 },
       bookings: {
         where: { status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
@@ -24,12 +25,41 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
 
   const bookedSlots = salon.bookings.map((b: (typeof salon.bookings)[number]) => b.date.toISOString());
   const plan = getEffectivePlan(salon);
+  const noteMoyenne =
+    salon.reviews.length > 0
+      ? salon.reviews.reduce((sum: number, r: (typeof salon.reviews)[number]) => sum + r.rating, 0) / salon.reviews.length
+      : null;
+  const galerie = [
+    ...(salon.coverUrl ? [salon.coverUrl] : []),
+    ...salon.photos.map((p: (typeof salon.photos)[number]) => p.url),
+  ];
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-12">
+      {galerie.length > 0 && (
+        <div className="mb-8 grid gap-2 sm:grid-cols-4 sm:grid-rows-2">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-beige sm:col-span-2 sm:row-span-2 sm:aspect-auto">
+            <img src={galerie[0]} alt={salon.name} className="h-full w-full object-cover" />
+          </div>
+          {galerie.slice(1, 5).map((url: string, i: number) => (
+            <div key={i} className="relative hidden aspect-square overflow-hidden rounded-2xl bg-beige sm:block">
+              <img src={url} alt={`${salon.name} ${i + 2}`} className="h-full w-full object-cover" />
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="grid gap-10 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
+            {noteMoyenne !== null && (
+              <span className="flex items-center gap-1 rounded-full bg-beige px-3 py-1 text-sm font-medium text-noir">
+                <span className="text-or-dark">★</span> {noteMoyenne.toFixed(1)}
+                <span className="text-noir/50">({salon.reviews.length} avis)</span>
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-noir/60">{salon.city}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {salon.categories.map((c: (typeof salon.categories)[number]) => (
