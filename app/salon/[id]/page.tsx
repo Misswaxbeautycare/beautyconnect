@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { getEffectivePlan } from "@/lib/subscription-plans";
+import { BuyProductButton } from "@/components/BuyProductButton";
 
 export default async function SalonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,6 +15,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
       categories: { include: { category: true } },
       photos: { orderBy: { order: "asc" } },
       reviews: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 10 },
+      products: { where: { isActive: true } },
       bookings: {
         where: { status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
         select: { date: true },
@@ -69,6 +71,23 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
             ))}
           </div>
           {salon.description && <p className="mt-6 text-noir/70">{salon.description}</p>}
+
+          {salon.products.length > 0 && (
+            <>
+              <h2 className="mt-12 font-display text-xl text-noir">Boutique</h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {salon.products.map((p: (typeof salon.products)[number]) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-2xl border border-beige-dark p-4">
+                    <div>
+                      <p className="font-medium text-noir">{p.name}</p>
+                      <p className="text-sm text-noir/60">{formatPrice(Number(p.price))}</p>
+                    </div>
+                    <BuyProductButton productId={p.id} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           <h2 className="mt-12 font-display text-xl text-noir">Avis</h2>
           <div className="mt-4 space-y-4">

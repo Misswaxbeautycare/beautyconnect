@@ -10,6 +10,7 @@ export interface SubscriptionPlan {
   onlinePayment: boolean;
   priorityPlacement: boolean;
   prioritySupport: boolean;
+  hasBoutique: boolean;
 }
 
 // Source unique des 3 formules. Chaque prix correspond à un Price récurrent
@@ -29,6 +30,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     onlinePayment: false,
     priorityPlacement: false,
     prioritySupport: false,
+    hasBoutique: false,
     features: [
       "Agenda et prise de rendez-vous en ligne",
       "Jusqu'à 5 photos de salon",
@@ -47,6 +49,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     onlinePayment: true,
     priorityPlacement: false,
     prioritySupport: false,
+    hasBoutique: false,
     features: [
       "Tout Essentiel",
       "Jusqu'à 10 photos de salon",
@@ -62,11 +65,13 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     onlinePayment: true,
     priorityPlacement: true,
     prioritySupport: true,
+    hasBoutique: true,
     features: [
       "Tout Signature",
       "Jusqu'à 20 photos de salon",
       "Mise en avant prioritaire dans les résultats",
       "Support prioritaire",
+      "Boutique en ligne (vente de produits)",
     ],
   },
 ];

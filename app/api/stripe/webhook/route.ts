@@ -18,6 +18,27 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
 
+    if (session.metadata?.type === "product_order") {
+      const orderId = session.metadata.orderId;
+      if (orderId) {
+        const order = await prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: "PAID",
+            stripePaymentIntentId: session.payment_intent as string,
+          },
+          include: { items: true },
+        });
+        for (const item of order.items) {
+          await prisma.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
     if (session.mode === "subscription" && session.metadata?.type === "subscription") {
       const salonId = session.metadata.salonId;
       const subscriptionId = session.subscription as string;
