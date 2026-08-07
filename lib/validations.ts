@@ -32,6 +32,7 @@ export const serviceSchema = z.object({
   durationMin: z.number().int().min(5).max(600),
   price: z.number().positive(),
   depositPct: z.number().int().min(0).max(100).default(30),
+  modes: z.array(z.enum(["SALON", "DOMICILE", "DEPLACEMENT"])).min(1).default(["SALON"]),
 });
 export type ServiceInput = z.infer<typeof serviceSchema>;
 
@@ -43,6 +44,8 @@ export const salonSchema = z.object({
   postalCode: z.string().optional(),
   phone: z.string().optional(),
   categoryIds: z.array(z.string().uuid()).min(1, "Choisissez au moins une catégorie"),
+  domicileZone: z.string().optional(),
+  deplacementZone: z.string().optional(),
 });
 export type SalonInput = z.infer<typeof salonSchema>;
 

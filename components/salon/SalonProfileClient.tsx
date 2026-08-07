@@ -29,6 +29,7 @@ interface ServiceData {
   durationMin: number;
   price: number;
   depositPct: number;
+  modes: ("SALON" | "DOMICILE" | "DEPLACEMENT")[];
 }
 
 interface ProductData {
@@ -68,6 +69,8 @@ export interface SalonProfileData {
   city: string;
   address: string | null;
   postalCode: string | null;
+  domicileZone: string | null;
+  deplacementZone: string | null;
   latitude: number | null;
   longitude: number | null;
   isApproved: boolean;
@@ -96,6 +99,12 @@ type TabKey = (typeof TABS)[number]["key"];
 
 const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 
+const MODE_LABELS: Record<"SALON" | "DOMICILE" | "DEPLACEMENT", string> = {
+  SALON: "En salon",
+  DOMICILE: "À domicile",
+  DEPLACEMENT: "Le pro se déplace",
+};
+
 /* ============================================================
    COMPOSANT
    ============================================================ */
@@ -103,6 +112,12 @@ const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "s
 export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
   const [activeTab, setActiveTab] = useState<TabKey>("apropos");
   const [preselectServiceId, setPreselectServiceId] = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<"SALON" | "DOMICILE" | "DEPLACEMENT">(() => {
+    if (salon.services.some((s) => s.modes.includes("SALON"))) return "SALON";
+    if (salon.services.some((s) => s.modes.includes("DOMICILE"))) return "DOMICILE";
+    if (salon.services.some((s) => s.modes.includes("DEPLACEMENT"))) return "DEPLACEMENT";
+    return "SALON";
+  });
   const sectionRefs = {
     apropos: useRef<HTMLDivElement>(null),
     prestations: useRef<HTMLDivElement>(null),
@@ -117,20 +132,31 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
     [salon.teamMembers.length]
   );
 
+  const availableModes = useMemo(() => {
+    const set = new Set<string>();
+    salon.services.forEach((s) => s.modes.forEach((m) => set.add(m)));
+    return (["SALON", "DOMICILE", "DEPLACEMENT"] as const).filter((m) => set.has(m));
+  }, [salon.services]);
+
+  const servicesForMode = useMemo(
+    () => salon.services.filter((s) => s.modes.includes(activeMode)),
+    [salon.services, activeMode]
+  );
+
   const categories = useMemo(
-    () => Array.from(new Set(salon.services.map((s) => s.categoryName))),
-    [salon.services]
+    () => Array.from(new Set(servicesForMode.map((s) => s.categoryName))),
+    [servicesForMode]
   );
 
   // BookingCalendar présélectionne toujours son premier élément : on remonte
   // la prestation cliquée en tête de liste pour qu'elle soit bien celle
   // sélectionnée par défaut quand on arrive sur le calendrier.
   const orderedServices = useMemo(() => {
-    if (!preselectServiceId) return salon.services;
-    const chosen = salon.services.find((s) => s.id === preselectServiceId);
-    if (!chosen) return salon.services;
-    return [chosen, ...salon.services.filter((s) => s.id !== preselectServiceId)];
-  }, [salon.services, preselectServiceId]);
+    if (!preselectServiceId) return servicesForMode;
+    const chosen = servicesForMode.find((s) => s.id === preselectServiceId);
+    if (!chosen) return servicesForMode;
+    return [chosen, ...servicesForMode.filter((s) => s.id !== preselectServiceId)];
+  }, [servicesForMode, preselectServiceId]);
 
   function goToTab(key: TabKey) {
     setActiveTab(key);
@@ -232,7 +258,9 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
 
             <p className="mt-2 flex items-center gap-1.5 text-sm text-noir/60">
               <MapPin size={14} className="shrink-0" />
-              {salon.address ? `${salon.address}, ${salon.city}` : salon.city}
+              {salon.services.some((s) => s.modes.includes("SALON")) && salon.address
+                ? `${salon.address}, ${salon.city}`
+                : salon.domicileZone || salon.deplacementZone || salon.city}
             </p>
 
             {/* Onglets */}
@@ -278,6 +306,34 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
             {/* Prestations */}
             <div ref={sectionRefs.prestations} className="scroll-mt-24 border-t border-beige-dark py-8">
               <h2 className="mb-4 font-display text-xl text-noir">Prestations</h2>
+
+              {availableModes.length > 1 && (
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {availableModes.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setActiveMode(m)}
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-xs font-medium transition",
+                        activeMode === m
+                          ? "border-noir bg-noir text-white"
+                          : "border-beige-dark text-noir/70 hover:border-or"
+                      )}
+                    >
+                      {MODE_LABELS[m]}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {activeMode === "DOMICILE" && salon.domicileZone && (
+                <p className="mb-4 text-sm text-noir/50">
+                  Zone d&apos;intervention : {salon.domicileZone} — adresse exacte communiquée après réservation.
+                </p>
+              )}
+              {activeMode === "DEPLACEMENT" && salon.deplacementZone && (
+                <p className="mb-4 text-sm text-noir/50">Le professionnel se déplace : {salon.deplacementZone}.</p>
+              )}
               {categories.length === 0 && (
                 <p className="text-sm text-noir/40">Aucune prestation disponible pour le moment.</p>
               )}
@@ -285,7 +341,7 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 <div key={cat} className="mb-6 last:mb-0">
                   <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wide text-or-dark">{cat}</p>
                   <div className="flex flex-col gap-2.5">
-                    {salon.services
+                    {servicesForMode
                       .filter((s) => s.categoryName === cat)
                       .map((s) => (
                         <div

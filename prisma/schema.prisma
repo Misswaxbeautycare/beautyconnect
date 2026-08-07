@@ -63,6 +63,14 @@ enum NotificationType {
   PAYMENT_RECEIVED
 }
 
+// Où se déroule la prestation — un service peut être proposé selon
+// plusieurs modes à la fois (ex: en salon ET à domicile).
+enum ServiceMode {
+  SALON
+  DOMICILE
+  DEPLACEMENT
+}
+
 // ------------------------------------------------------------
 // UTILISATEURS & RÔLES
 // ------------------------------------------------------------
@@ -112,6 +120,12 @@ model Salon {
   longitude      Float?
   phone          String?
   commissionRate Float    @default(15) // % prélevé par la plateforme
+
+  // Renseignés seulement si le pro propose au moins une prestation en mode
+  // DOMICILE ou DEPLACEMENT — affichés à la place de l'adresse exacte du
+  // salon, qui elle n'est révélée qu'après réservation confirmée.
+  domicileZone     String?
+  deplacementZone  String?
 
   stripeCustomerId     String?
   stripeSubscriptionId String?
@@ -229,6 +243,7 @@ model Service {
   durationMin Int      // durée en minutes
   price       Decimal  @db.Decimal(10, 2)
   depositPct  Int      @default(30) // % d'acompte si applicable
+  modes       ServiceMode[] @default([SALON])
   isActive    Boolean  @default(true)
 
   createdAt   DateTime @default(now())

@@ -6,14 +6,30 @@ import { Button } from "@/components/ui/Button";
 
 type Category = { id: string; name: string };
 
+const MODE_OPTIONS: { value: "SALON" | "DOMICILE" | "DEPLACEMENT"; label: string }[] = [
+  { value: "SALON", label: "En salon" },
+  { value: "DOMICILE", label: "À domicile (chez vous)" },
+  { value: "DEPLACEMENT", label: "Je me déplace chez la cliente" },
+];
+
 export function ServiceForm({ categories }: { categories: Category[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [modes, setModes] = useState<string[]>(["SALON"]);
+
+  function toggleMode(value: string) {
+    setModes((prev) => (prev.includes(value) ? prev.filter((m) => m !== value) : [...prev, value]));
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (modes.length === 0) {
+      setError("Choisissez au moins un mode de prestation.");
+      return;
+    }
     setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
@@ -29,6 +45,7 @@ export function ServiceForm({ categories }: { categories: Category[] }) {
           durationMin: Number(form.get("durationMin")),
           price: Number(form.get("price")),
           depositPct: Number(form.get("depositPct") || 30),
+          modes,
         }),
       });
 
@@ -80,6 +97,25 @@ export function ServiceForm({ categories }: { categories: Category[] }) {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label className="text-sm text-noir/70">Où proposez-vous cette prestation ?</label>
+        <div className="mt-2 flex flex-col gap-2">
+          {MODE_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2 rounded-lg border border-beige-dark px-4 py-3 text-sm text-noir/80"
+            >
+              <input
+                type="checkbox"
+                checked={modes.includes(opt.value)}
+                onChange={() => toggleMode(opt.value)}
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

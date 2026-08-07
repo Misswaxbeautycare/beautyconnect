@@ -58,6 +58,8 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         city: salon.city,
         address: salon.address,
         postalCode: salon.postalCode,
+        domicileZone: salon.domicileZone,
+        deplacementZone: salon.deplacementZone,
         latitude: salon.latitude,
         longitude: salon.longitude,
         isApproved: salon.isApproved,
@@ -73,6 +75,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           durationMin: s.durationMin,
           price: Number(s.price),
           depositPct: s.depositPct,
+          modes: s.modes,
         })),
         products: salon.products.map((p: (typeof salon.products)[number]) => ({
           id: p.id,

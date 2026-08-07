@@ -33,6 +33,8 @@ interface SalonEditFormProps {
     postalCode: string | null;
     phone: string | null;
     logoUrl: string | null;
+    domicileZone: string | null;
+    deplacementZone: string | null;
     photos: ExistingPhoto[];
     categories: { categoryId: string }[];
   };
@@ -64,6 +66,8 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       postalCode: salon.postalCode ?? "",
       phone: salon.phone ?? "",
       categoryIds: salon.categories.map((c) => c.categoryId),
+      domicileZone: salon.domicileZone ?? "",
+      deplacementZone: salon.deplacementZone ?? "",
     } as unknown as SalonInput,
   });
 
@@ -264,6 +268,30 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
         {errors.categoryIds && (
           <p className="mt-1 text-xs text-red-600">{errors.categoryIds.message as string}</p>
         )}
+      </div>
+
+      <div>
+        <label className="text-sm text-noir/70">Zone d&apos;intervention à domicile (optionnel)</label>
+        <input
+          {...register("domicileZone")}
+          placeholder="Ex: Ixelles et environs — adresse exacte donnée après réservation"
+          className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+        />
+        <p className="mt-1 text-xs text-noir/40">
+          Affiché à la place de votre adresse si vous proposez des prestations à domicile.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-sm text-noir/70">Zone de déplacement chez la cliente (optionnel)</label>
+        <input
+          {...register("deplacementZone")}
+          placeholder="Ex: Bruxelles et 15km alentour"
+          className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+        />
+        <p className="mt-1 text-xs text-noir/40">
+          Affiché si vous proposez des prestations où vous vous déplacez chez la cliente.
+        </p>
       </div>
 
       <div>
