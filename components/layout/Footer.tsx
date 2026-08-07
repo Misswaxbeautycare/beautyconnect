@@ -8,7 +8,7 @@ export function Footer() {
           <p className="font-display text-lg text-white">Beauty Connect</p>
           <p className="mt-1 text-xs text-beige/40">Powered by Misswaxbeautycare</p>
           <p className="mt-2 text-sm text-beige/60">
-            Réservez. Connectez. Rayonnez.
+            Trouvez. Réservez. Rayonnez.
           </p>
         </div>
         <div>

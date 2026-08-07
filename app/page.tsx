@@ -81,7 +81,7 @@ export default async function HomePage() {
               BEAUTÉ · BIEN-ÊTRE · STYLE
             </p>
             <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
-              Réservez. Connectez. <span className="text-[#5C3A1E]">Rayonnez.</span>
+              Trouvez. Réservez. <span className="text-[#5C3A1E]">Rayonnez.</span>
             </h1>
             <p className="mx-auto mb-6 max-w-md text-noir/60 lg:mx-0">
               Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
