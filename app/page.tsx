@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarCheck, ShieldCheck, MessageSquareText, Search, ArrowUpRight, Sparkles } from "lucide-react";
+import { CalendarCheck, ShieldCheck, MessageSquareText, Search, ArrowUpRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { categories } from "@/lib/categories";
 import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
@@ -64,104 +64,71 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-terracotta px-6 py-20">
-        {/* Halo décoratif — pas de photo nécessaire, juste de la profondeur */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-noir/5 blur-3xl"
-        />
+      <section className="relative overflow-hidden bg-white px-6 py-20">
+        <div className="relative mx-auto max-w-3xl text-center">
+          <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-noir/40">
+            BEAUTÉ · BIEN-ÊTRE · STYLE
+          </p>
+          <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
+            Trouvez. Réservez.{" "}
+            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+              Rayonnez.
+            </span>
+          </h1>
+          <p className="mx-auto mb-6 max-w-md text-noir/60">
+            Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
+          </p>
 
-        <div className="relative mx-auto grid max-w-6xl gap-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-          <div className="text-center lg:text-left">
-            <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-[#5C3A1E]">
-              BEAUTÉ · BIEN-ÊTRE · STYLE
-            </p>
-            <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
-              Trouvez. Réservez. <span className="text-[#5C3A1E]">Rayonnez.</span>
-            </h1>
-            <p className="mx-auto mb-6 max-w-md text-noir/60 lg:mx-0">
-              Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
-            </p>
-
-            <div className="mb-8 flex flex-wrap justify-center gap-2 lg:justify-start">
-              {heroServices.map((s) => (
-                <span
-                  key={s}
-                  className="rounded-full border border-noir/10 bg-white/70 px-3.5 py-1.5 text-xs font-medium text-noir/70"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-
-            <form
-              action="/recherche"
-              className="mx-auto mb-8 flex max-w-lg items-center gap-2 rounded-full border border-white bg-white py-1.5 pl-5 pr-1.5 shadow-lg shadow-noir/5 lg:mx-0"
-            >
-              <Search size={18} className="shrink-0 text-noir/40" />
-              <input
-                type="text"
-                name="q"
-                placeholder="Recherchez tous les soins"
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
-              />
-              <button
-                type="submit"
-                aria-label="Rechercher"
-                className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-or px-4 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white sm:px-6"
+          <div className="mb-8 flex flex-wrap justify-center gap-2">
+            {heroServices.map((s) => (
+              <span
+                key={s}
+                className="rounded-full border border-beige-dark bg-beige px-3.5 py-1.5 text-xs font-medium text-noir/70"
               >
-                <Search size={16} className="sm:hidden" />
-                <span className="hidden sm:inline">Rechercher</span>
-              </button>
-            </form>
-
-            <div className="flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-              <Link
-                href="/recherche"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-or bg-or px-8 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:border-or-dark hover:text-white"
-              >
-                Trouver un professionnel
-              </Link>
-              <Link
-                href="/pro/inscription"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir bg-white px-8 py-3.5 font-semibold text-noir transition hover:bg-noir hover:text-white"
-              >
-                Je suis un professionnel
-                <ArrowUpRight size={16} />
-              </Link>
-            </div>
-
-            <div className="mt-4 flex justify-center lg:justify-start">
-              <InstallAppButton />
-            </div>
+                {s}
+              </span>
+            ))}
           </div>
 
-          {/* Panneau signature — dégradé doré chaleureux, pas de noir */}
-          <div className="relative hidden aspect-[4/5] lg:block">
-            <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-or-dark via-[#8A5A28] to-[#4A2F14]" />
-            <div className="absolute inset-6 rounded-[2rem] border border-white/15" />
-            <div className="absolute left-10 top-10 h-24 w-24 rounded-full bg-or-light/40 blur-2xl" />
-            <div className="absolute bottom-16 right-10 h-32 w-32 rounded-full bg-or-light/30 blur-3xl" />
+          <form
+            action="/recherche"
+            className="mx-auto mb-8 flex max-w-lg items-center gap-2 rounded-full border border-beige-dark bg-white py-1.5 pl-5 pr-1.5 shadow-lg shadow-noir/5"
+          >
+            <Search size={18} className="shrink-0 text-noir/40" />
+            <input
+              type="text"
+              name="q"
+              placeholder="Recherchez tous les soins"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
+            />
+            <button
+              type="submit"
+              aria-label="Rechercher"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-or px-4 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white sm:px-6"
+            >
+              <Search size={16} className="sm:hidden" />
+              <span className="hidden sm:inline">Rechercher</span>
+            </button>
+          </form>
 
-            <div className="absolute left-8 top-8 flex items-center gap-2 text-white/70">
-              <Sparkles size={16} className="text-or" />
-              <span className="font-display text-lg text-white">BeautyConnect</span>
-            </div>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/recherche"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-noir px-8 py-3.5 font-semibold text-white transition hover:bg-or hover:text-noir"
+            >
+              Trouver un professionnel
+            </Link>
+            <Link
+              href="/pro/inscription"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir px-8 py-3.5 font-semibold text-noir transition hover:bg-noir hover:text-white"
+            >
+              Je suis un professionnel
+              <ArrowUpRight size={16} />
+            </Link>
+          </div>
 
-            <div className="absolute bottom-8 left-8 right-8 rounded-2xl bg-white p-5 shadow-xl">
-              <p className="font-display text-sm text-noir">Réservation en 2 minutes</p>
-              <p className="mt-1 text-xs text-noir/50">
-                Choisissez un créneau, confirmez, c&apos;est prêt.
-              </p>
-            </div>
-            <div className="absolute right-8 top-24 rounded-2xl bg-white/95 px-4 py-3 shadow-lg">
-              <p className="text-xs font-semibold text-noir">Avis 100% vérifiés</p>
-              <p className="text-[11px] text-noir/50">Uniquement après visite</p>
-            </div>
+          <div className="mt-4 flex justify-center">
+            <InstallAppButton />
           </div>
         </div>
       </section>
@@ -202,8 +169,8 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Pourquoi BeautyConnect — même cadrage que la section CTA juste en dessous */}
-      <section className="mx-6 my-12 rounded-3xl bg-terracotta px-6 py-12">
+      {/* Pourquoi BeautyConnect */}
+      <section className="mx-6 my-12 rounded-3xl bg-beige px-6 py-12">
         <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-3">
           <FeatureItem
             href="/recherche"
@@ -227,21 +194,21 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Pro */}
-      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-terracotta-dark px-6 py-16 text-center">
+      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-noir px-6 py-16 text-center">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-white/15 blur-3xl"
+          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/10 blur-3xl"
         />
-        <h2 className="relative mb-3 font-display text-2xl text-noir">
+        <h2 className="relative mb-3 font-display text-2xl text-white">
           Vous êtes un professionnel de la beauté ?
         </h2>
-        <p className="relative mx-auto mb-8 max-w-md text-noir/60">
+        <p className="relative mx-auto mb-8 max-w-md text-white/60">
           Développez votre activité, gérez votre agenda et vos paiements sur
           Misswaxbeautycare.
         </p>
         <Link
           href="/pro/inscription"
-          className="relative inline-block rounded-full bg-white px-10 py-3.5 font-semibold text-noir shadow-lg transition hover:bg-or hover:text-white"
+          className="relative inline-block rounded-full bg-white px-10 py-3.5 font-semibold text-noir shadow-lg transition hover:bg-or"
         >
           Créer mon salon
         </Link>
@@ -264,7 +231,7 @@ function FeatureItem({
   return (
     <Link href={href} className="group block text-center sm:text-left">
       <div className="mb-2 flex items-center justify-center gap-2 sm:justify-start">
-        <span className="text-[#5C3A1E]">{icon}</span>
+        <span className="text-or-dark">{icon}</span>
         <h3 className="font-display text-base text-noir group-hover:underline">{title}</h3>
       </div>
       <p className="text-sm text-noir/50">{description}</p>
