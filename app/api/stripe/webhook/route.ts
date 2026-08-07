@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { getResend } from "@/lib/resend";
+import { getPlan } from "@/lib/subscription-plans";
 import Stripe from "stripe";
 
 // Webhook Stripe : confirme la réservation + le paiement quand le paiement réussit
@@ -108,6 +110,30 @@ export async function POST(req: NextRequest) {
           trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
         },
       });
+
+      // Uniquement à la toute première souscription (pas à chaque
+      // renouvellement/mise à jour) — pour prévenir l'équipe Misswaxbeautycare
+      // sans la noyer sous des emails répétés.
+      if (event.type === "customer.subscription.created") {
+        const salon = await prisma.salon.findUnique({ where: { id: salonId } });
+        const planName = getPlan(subscription.metadata?.plan).name;
+        const adminEmail = process.env.ADMIN_EMAIL ?? "contact@misswaxbeautycare.com";
+        try {
+          await getResend().emails.send({
+            from: "BeautyConnect <notifications@beautyconnect.be>",
+            to: adminEmail,
+            subject: `Nouvel abonnement : ${salon?.name ?? salonId} — formule ${planName}`,
+            html: `
+              <p>Un salon vient de souscrire à un abonnement payant.</p>
+              <p><strong>Salon :</strong> ${salon?.name ?? salonId}</p>
+              <p><strong>Formule :</strong> ${planName}</p>
+              <p><strong>Statut :</strong> ${subscription.status}</p>
+            `,
+          });
+        } catch (err) {
+          console.error("[stripe/webhook] Échec de l'email admin nouvel abonnement", err);
+        }
+      }
     }
   }
 
