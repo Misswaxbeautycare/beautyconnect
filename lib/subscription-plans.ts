@@ -11,15 +11,22 @@ export interface SubscriptionPlan {
   priorityPlacement: boolean;
   prioritySupport: boolean;
   hasBoutique: boolean;
+  // Modes de prestation "à domicile" / "le pro se déplace" — Essentiel reste
+  // limité au mode "en salon" uniquement.
+  multiModePrestations: boolean;
+  // Nombre maximum de membres d'équipe affichables sur la fiche salon.
+  maxTeamMembers: number;
+  // Relance automatique par email des clientes inactives (~30 jours).
+  reEngagementEmails: boolean;
 }
 
 // Source unique des 3 formules. Chaque prix correspond à un Price récurrent
 // créé dans le tableau de bord Stripe — son identifiant (price_...) doit être
 // renseigné dans la variable d'environnement Vercel correspondante.
 //
-// Important : les champs maxPhotos / onlinePayment / priorityPlacement sont
-// utilisés directement par le code (formulaires salon, réservation, tri des
-// résultats) — ce ne sont pas de simples mentions marketing.
+// Important : ces champs sont utilisés directement par le code (formulaires
+// salon/service, tri des résultats, cron de relance...) — ce ne sont pas de
+// simples mentions marketing.
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: "essentiel",
@@ -31,12 +38,17 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priorityPlacement: false,
     prioritySupport: false,
     hasBoutique: false,
+    multiModePrestations: false,
+    maxTeamMembers: 0,
+    reEngagementEmails: false,
     features: [
       "Agenda et prise de rendez-vous en ligne",
       "Jusqu'à 5 photos de salon",
       "Réservations réglées sur place",
       "Clientes fidèles et carnet de contacts",
       "Rappels automatiques par email",
+      "Réponse publique aux avis",
+      "Prestations en salon uniquement",
     ],
   },
   {
@@ -50,10 +62,16 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priorityPlacement: false,
     prioritySupport: false,
     hasBoutique: false,
+    multiModePrestations: true,
+    maxTeamMembers: 3,
+    reEngagementEmails: true,
     features: [
       "Tout Essentiel",
       "Jusqu'à 10 photos de salon",
       "Paiement en ligne (acompte ou intégral) en plus du paiement sur place",
+      "Prestations à domicile et déplacement chez la cliente",
+      "Équipe affichée sur la fiche (jusqu'à 3 membres)",
+      "Relance automatique des clientes inactives",
     ],
   },
   {
@@ -66,12 +84,16 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priorityPlacement: true,
     prioritySupport: true,
     hasBoutique: true,
+    multiModePrestations: true,
+    maxTeamMembers: Infinity,
+    reEngagementEmails: true,
     features: [
       "Tout Signature",
       "Jusqu'à 20 photos de salon",
       "Mise en avant prioritaire dans les résultats",
       "Support prioritaire",
       "Boutique en ligne (vente de produits)",
+      "Équipe illimitée sur la fiche",
     ],
   },
 ];

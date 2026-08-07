@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
 import { subDays } from "date-fns";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 // Sécurise cette route : seul Vercel Cron (avec le bon secret) peut la déclencher
 function isAuthorized(req: NextRequest) {
@@ -47,6 +48,9 @@ export async function GET(req: NextRequest) {
       prisma.salon.findUnique({ where: { id: g.salonId } }),
     ]);
     if (!client || !salon || !salon.isActive) continue;
+
+    const plan = getEffectivePlan(salon);
+    if (!plan.reEngagementEmails) continue;
 
     try {
       await getResend().emails.send({

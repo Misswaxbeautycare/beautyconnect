@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ServiceForm } from "@/components/pro/ServiceForm";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 export default async function NouvellePrestationPage() {
   const supabase = await createClient();
@@ -15,6 +16,7 @@ export default async function NouvellePrestationPage() {
   if (!salon) redirect("/pro/salon/creer");
 
   const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+  const plan = getEffectivePlan(salon);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -22,7 +24,7 @@ export default async function NouvellePrestationPage() {
       <p className="mt-2 text-sm text-noir/60">
         Ex: coupe, soin, tissage... Chaque prestation pourra être choisie lors d&apos;un rendez-vous.
       </p>
-      <ServiceForm categories={categories} />
+      <ServiceForm categories={categories} allowMultiMode={plan.multiModePrestations} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { serviceSchema } from "@/lib/validations";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 async function getOwnSalon() {
   const supabase = await createClient();
@@ -44,6 +45,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Champs invalides", details: parsed.error.flatten() },
       { status: 400 }
+    );
+  }
+
+  const plan = getEffectivePlan(result.salon);
+  if (!plan.multiModePrestations && parsed.data.modes.some((m) => m !== "SALON")) {
+    return NextResponse.json(
+      { error: `Les prestations à domicile ou en déplacement nécessitent la formule Signature ou Prestige.` },
+      { status: 403 }
     );
   }
 

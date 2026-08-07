@@ -12,13 +12,20 @@ const MODE_OPTIONS: { value: "SALON" | "DOMICILE" | "DEPLACEMENT"; label: string
   { value: "DEPLACEMENT", label: "Je me déplace chez la cliente" },
 ];
 
-export function ServiceForm({ categories }: { categories: Category[] }) {
+export function ServiceForm({
+  categories,
+  allowMultiMode,
+}: {
+  categories: Category[];
+  allowMultiMode: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [modes, setModes] = useState<string[]>(["SALON"]);
 
   function toggleMode(value: string) {
+    if (value !== "SALON" && !allowMultiMode) return;
     setModes((prev) => (prev.includes(value) ? prev.filter((m) => m !== value) : [...prev, value]));
   }
 
@@ -102,19 +109,26 @@ export function ServiceForm({ categories }: { categories: Category[] }) {
       <div>
         <label className="text-sm text-noir/70">Où proposez-vous cette prestation ?</label>
         <div className="mt-2 flex flex-col gap-2">
-          {MODE_OPTIONS.map((opt) => (
-            <label
-              key={opt.value}
-              className="flex items-center gap-2 rounded-lg border border-beige-dark px-4 py-3 text-sm text-noir/80"
-            >
-              <input
-                type="checkbox"
-                checked={modes.includes(opt.value)}
-                onChange={() => toggleMode(opt.value)}
-              />
-              {opt.label}
-            </label>
-          ))}
+          {MODE_OPTIONS.map((opt) => {
+            const locked = opt.value !== "SALON" && !allowMultiMode;
+            return (
+              <label
+                key={opt.value}
+                className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
+                  locked ? "border-beige-dark bg-beige/50 text-noir/30" : "border-beige-dark text-noir/80"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={modes.includes(opt.value)}
+                  disabled={locked}
+                  onChange={() => toggleMode(opt.value)}
+                />
+                {opt.label}
+                {locked && <span className="ml-auto text-xs">Formule Signature+</span>}
+              </label>
+            );
+          })}
         </div>
       </div>
 

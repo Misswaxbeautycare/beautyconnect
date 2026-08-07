@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { teamMemberSchema } from "@/lib/validations";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 async function getOwnSalon() {
   const supabase = await createClient();
@@ -46,7 +47,20 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const plan = getEffectivePlan(result.salon);
   const count = await prisma.teamMember.count({ where: { salonId: result.salon.id } });
+
+  if (count >= plan.maxTeamMembers) {
+    return NextResponse.json(
+      {
+        error:
+          plan.maxTeamMembers === 0
+            ? `L'affichage de l'équipe est réservé aux formules Signature et Prestige.`
+            : `Votre formule "${plan.name}" est limitée à ${plan.maxTeamMembers} membres. Passez à une formule supérieure pour en ajouter davantage.`,
+      },
+      { status: 403 }
+    );
+  }
 
   const teamMember = await prisma.teamMember.create({
     data: { ...parsed.data, salonId: result.salon.id, order: count },
