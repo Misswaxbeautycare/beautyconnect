@@ -37,7 +37,7 @@ export async function Navbar() {
               Connexion
             </Link>
           )}
-          <ReserverButton />
+          <ReserverButton isLoggedIn={Boolean(dbUser)} />
         </div>
       </div>
     </header>

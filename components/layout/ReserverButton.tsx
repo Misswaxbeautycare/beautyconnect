@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { QuickBookingModal } from "@/components/booking/QuickBookingModal";
 
-export function ReserverButton({ className = "" }: { className?: string }) {
+export function ReserverButton({ className = "", isLoggedIn = false }: { className?: string; isLoggedIn?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -16,7 +16,7 @@ export function ReserverButton({ className = "" }: { className?: string }) {
         <span className="absolute inset-0 rounded-full bg-or animate-ping opacity-40" aria-hidden />
         <span className="relative">Réserver</span>
       </button>
-      <QuickBookingModal open={open} onClose={() => setOpen(false)} />
+      <QuickBookingModal open={open} onClose={() => setOpen(false)} isLoggedIn={isLoggedIn} />
     </>
   );
 }

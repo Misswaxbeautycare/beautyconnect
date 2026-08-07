@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
-import { addHours, addMinutes } from "date-fns";
+import { startOfDay, endOfDay, addDays } from "date-fns";
 
 // Sécurise cette route : seul Vercel Cron (avec le bon secret) peut la déclencher
 function isAuthorized(req: NextRequest) {
@@ -44,7 +44,7 @@ async function envoyerRappel(
       <p>Petit rappel : vous avez rendez-vous <strong>${delaiTexte}</strong> chez <strong>${booking.salon.name}</strong> pour <strong>${booking.service.name}</strong>.</p>
       <p>📅 ${heureRdv}</p>
       <p>À bientôt !</p>
-      <p style="color:#999;font-size:12px;">BeautyConnect — Réservez. Connectez. Rayonnez.</p>
+      <p style="color:#999;font-size:12px;">BeautyConnect — Trouvez. Réservez. Rayonnez.</p>
     `,
   });
 
@@ -61,31 +61,33 @@ async function envoyerRappel(
   }
 }
 
+// Ce cron ne tourne qu'une fois par jour (contrainte du plan Vercel actuel :
+// impossible de viser une fenêtre précise du type "exactement 2h avant").
+// On envoie donc deux rappels fiables à chaque exécution quotidienne :
+// - la veille, pour tout rendez-vous prévu le lendemain
+// - le matin même, pour tout rendez-vous prévu plus tard dans la journée
+// Le filtre "notifications: none" évite d'envoyer deux fois le même rappel
+// si le cron tourne à nouveau le même jour.
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
   const maintenant = new Date();
+  const demain = addDays(maintenant, 1);
 
-  const debut24h = addMinutes(addHours(maintenant, 24), -30);
-  const fin24h = addMinutes(addHours(maintenant, 24), 30);
-
-  const debut2h = addMinutes(addHours(maintenant, 2), -15);
-  const fin2h = addMinutes(addHours(maintenant, 2), 15);
-
-  const bookings24h = await prisma.booking.findMany({
+  const bookingsDemain = await prisma.booking.findMany({
     where: {
-      date: { gte: debut24h, lte: fin24h },
+      date: { gte: startOfDay(demain), lte: endOfDay(demain) },
       status: "CONFIRMED",
       notifications: { none: { type: "BOOKING_REMINDER_24H" } },
     },
     include: { client: true, service: true, salon: true },
   });
 
-  const bookings2h = await prisma.booking.findMany({
+  const bookingsAujourdhui = await prisma.booking.findMany({
     where: {
-      date: { gte: debut2h, lte: fin2h },
+      date: { gte: maintenant, lte: endOfDay(maintenant) },
       status: "CONFIRMED",
       notifications: { none: { type: "BOOKING_REMINDER_2H" } },
     },
@@ -94,13 +96,13 @@ export async function GET(req: NextRequest) {
 
   let envoyes = 0;
 
-  for (const booking of bookings24h) {
+  for (const booking of bookingsDemain) {
     await envoyerRappel(booking, "BOOKING_REMINDER_24H", "demain");
     envoyes++;
   }
 
-  for (const booking of bookings2h) {
-    await envoyerRappel(booking, "BOOKING_REMINDER_2H", "dans 2 heures");
+  for (const booking of bookingsAujourdhui) {
+    await envoyerRappel(booking, "BOOKING_REMINDER_2H", "aujourd'hui");
     envoyes++;
   }
 
