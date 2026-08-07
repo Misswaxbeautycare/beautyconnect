@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
-import { BuyProductButton } from "@/components/BuyProductButton";
+import { ProductCart } from "@/components/salon/ProductCart";
 import { FavoriteButton } from "@/components/salon/FavoriteButton";
 
 /* ============================================================
@@ -369,32 +369,7 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 </div>
               ))}
 
-              {salon.products.length > 0 && (
-                <div className="mt-10">
-                  <h3 className="mb-3 font-display text-lg text-noir">Boutique</h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {salon.products.map((p) => (
-                      <div
-                        key={p.id}
-                        className="flex items-center justify-between gap-3 rounded-2xl border border-beige-dark p-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-beige">
-                            {p.imageUrl && (
-                              <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-noir">{p.name}</p>
-                            <p className="text-sm text-noir/60">{formatPrice(p.price)}</p>
-                          </div>
-                        </div>
-                        <BuyProductButton productId={p.id} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {salon.products.length > 0 && <ProductCart products={salon.products} />}
             </div>
 
             {/* Équipe */}

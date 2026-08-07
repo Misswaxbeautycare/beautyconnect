@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { addDays, format, isSameDay, setHours, setMinutes, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ArrowLeft, ArrowRight, Check, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, ShoppingBasket, X } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
@@ -38,6 +38,7 @@ export function BookingCalendar({
 }: BookingCalendarProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("prestations");
+  const [showCart, setShowCart] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>(services[0] ? [services[0].id] : []);
   const [selectedDay, setSelectedDay] = useState(startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
@@ -149,10 +150,52 @@ export function BookingCalendar({
       {/* ===== ÉTAPE 1 — PRESTATIONS (façon panier) ===== */}
       {step === "prestations" && (
         <>
-          <div className="p-5 pb-0">
-            <p className="text-sm font-medium text-noir/70">Choisissez vos prestations</p>
-            <p className="mt-0.5 text-xs text-noir/40">Sélection multiple possible.</p>
+          <div className="flex items-center justify-between p-5 pb-0">
+            <div>
+              <p className="text-sm font-medium text-noir/70">Choisissez vos prestations</p>
+              <p className="mt-0.5 text-xs text-noir/40">Sélection multiple possible.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCart((v) => !v)}
+              aria-label="Voir le panier"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-beige-dark text-noir/70 hover:border-or hover:text-noir"
+            >
+              <ShoppingBasket size={17} />
+              {selectedServices.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-or text-[10px] font-bold text-noir">
+                  {selectedServices.length}
+                </span>
+              )}
+            </button>
           </div>
+
+          {showCart && (
+            <div className="mx-5 mt-3 rounded-2xl border border-beige-dark bg-beige/50 p-4">
+              {selectedServices.length === 0 ? (
+                <p className="text-sm text-noir/40">Votre panier est vide pour l&apos;instant.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {selectedServices.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-noir">{s.name}</span>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-medium text-noir">{formatPrice(s.price)}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleService(s.id)}
+                          aria-label={`Retirer ${s.name}`}
+                          className="text-noir/40 hover:text-red-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex flex-col gap-2.5 p-5">
             {services.map((s) => {
               const active = selectedIds.includes(s.id);
