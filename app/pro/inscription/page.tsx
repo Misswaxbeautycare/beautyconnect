@@ -67,10 +67,26 @@ export default function ProInscriptionPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-      <h1 className="font-display text-3xl text-noir">Créer mon espace pro</h1>
-      <p className="mt-2 text-sm text-noir/60">Rejoignez Misswaxbeautycare en tant que professionnel.</p>
+      <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-noir/40">
+        Pour les professionnels
+      </p>
+      <h1 className="text-center font-display text-3xl leading-[1.15] text-noir sm:text-4xl">
+        Le logiciel pensé pour{" "}
+        <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+          les salons de beauté
+        </span>
+        {" "}: développez votre activité en toute simplicité
+      </h1>
+      <p className="mt-4 text-center text-sm text-noir/60">
+        Agenda, paiements, clientes et boutique — gérez tout depuis une seule plateforme, sans
+        effort.
+      </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+      <div className="mt-10 rounded-3xl border border-beige-dark p-6 sm:p-8">
+        <h2 className="font-display text-2xl text-noir">Créer mon espace pro</h2>
+        <p className="mt-1 text-sm text-noir/60">Rejoignez Misswaxbeautycare en tant que professionnel.</p>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-sm text-noir/70">Prénom</label>
@@ -115,11 +131,12 @@ export default function ProInscriptionPage() {
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Création..." : "Créer mon espace pro"}
         </Button>
-      </form>
+        </form>
 
-      <p className="mt-6 text-center text-sm text-noir/60">
-        Déjà un compte ? <Link href="/login" className="text-or-dark underline">Se connecter</Link>
-      </p>
+        <p className="mt-6 text-center text-sm text-noir/60">
+          Déjà un compte ? <Link href="/login" className="text-or-dark underline">Se connecter</Link>
+        </p>
+      </div>
     </div>
   );
 }
