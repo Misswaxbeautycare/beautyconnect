@@ -10,7 +10,7 @@ function isAuthorized(req: NextRequest) {
 }
 
 // Repère les clientes dont le dernier rendez-vous chez un salon donné date
-// d'il y a environ 60 jours, et leur envoie une relance. La fenêtre de 7
+// d'il y a environ 30 jours, et leur envoie une relance. La fenêtre de 7
 // jours correspond à la fréquence hebdomadaire du cron : chaque cliente ne
 // tombe donc dans cette fenêtre qu'une seule fois par rendez-vous, ce qui
 // évite les relances envoyées en double semaine après semaine.
@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
   }
 
   const maintenant = new Date();
-  const fenetreDebut = subDays(maintenant, 67);
-  const fenetreFin = subDays(maintenant, 60);
+  const fenetreDebut = subDays(maintenant, 37);
+  const fenetreFin = subDays(maintenant, 30);
 
   const groupes = await prisma.booking.groupBy({
     by: ["clientId", "salonId"],
