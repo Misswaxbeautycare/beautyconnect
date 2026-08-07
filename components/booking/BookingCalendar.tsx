@@ -34,20 +34,37 @@ export function BookingCalendar({
   closeHour = 18,
 }: BookingCalendarProps) {
   const router = useRouter();
-  const [selectedService, setSelectedService] = useState<Service | null>(services[0] ?? null);
+  const [selectedIds, setSelectedIds] = useState<string[]>(services[0] ? [services[0].id] : []);
   const [selectedDay, setSelectedDay] = useState(startOfDay(new Date()));
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+  const selectedServices = useMemo(
+    () => services.filter((s) => selectedIds.includes(s.id)),
+    [services, selectedIds]
+  );
+  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalDuration = selectedServices.reduce((sum, s) => sum + s.durationMin, 0);
+  // Pour l'acompte, on applique le % de la première prestation choisie
+  const depositPct = selectedServices[0]?.depositPct ?? 30;
+
+  function toggleService(id: string) {
+    setSelectedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      return next;
+    });
+    setSelectedSlot(null);
+  }
+
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
   const bookedSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
 
-  // Le calendrier se met à jour automatiquement selon le jour et la durée du service choisi
+  // Le calendrier se met à jour automatiquement selon le jour et la durée totale choisie
   const slots = useMemo(() => {
-    if (!selectedService) return [];
+    if (selectedServices.length === 0) return [];
     const result: Date[] = [];
     const stepMin = 30;
     for (let h = openHour; h < closeHour; h++) {
@@ -57,20 +74,22 @@ export function BookingCalendar({
       }
     }
     return result;
-  }, [selectedDay, selectedService, bookedSet, openHour, closeHour]);
+  }, [selectedDay, selectedServices.length, bookedSet, openHour, closeHour]);
 
   async function confirmBooking(paymentType: "DEPOSIT" | "FULL" | "ON_SITE") {
-    if (!selectedService || !selectedSlot) return;
+    if (selectedServices.length === 0 || !selectedSlot) return;
     setError(null);
     setLoading(true);
 
     try {
+      const [primary, ...rest] = selectedServices;
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           salonId,
-          serviceId: selectedService.id,
+          serviceId: primary.id,
+          additionalServiceIds: rest.map((s) => s.id),
           date: selectedSlot.toISOString(),
           paymentType,
         }),
@@ -115,16 +134,19 @@ export function BookingCalendar({
 
   return (
     <div className="rounded-2xl border border-beige-dark bg-white p-6">
-      {/* Choix de la prestation */}
-      <p className="text-sm font-medium text-noir/70">Prestation</p>
+      {/* Choix des prestations — plusieurs possibles pour un même rendez-vous */}
+      <p className="text-sm font-medium text-noir/70">
+        Prestation{selectedServices.length > 1 ? "s" : ""}
+        <span className="ml-1 font-normal text-noir/40">(sélection multiple possible)</span>
+      </p>
       <div className="mt-2 flex flex-wrap gap-2">
         {services.map((s) => (
           <button
             key={s.id}
-            onClick={() => { setSelectedService(s); setSelectedSlot(null); }}
+            onClick={() => toggleService(s.id)}
             className={cn(
               "rounded-full border px-4 py-2 text-sm transition-colors",
-              selectedService?.id === s.id
+              selectedIds.includes(s.id)
                 ? "border-or bg-or text-noir"
                 : "border-beige-dark text-noir/70 hover:border-or"
             )}
@@ -133,6 +155,11 @@ export function BookingCalendar({
           </button>
         ))}
       </div>
+      {selectedServices.length > 1 && (
+        <p className="mt-2 text-sm text-or-dark">
+          Total : {formatPrice(totalPrice)} · {totalDuration} min
+        </p>
+      )}
 
       {/* Choix du jour */}
       <p className="mt-6 text-sm font-medium text-noir/70">Jour</p>
@@ -176,7 +203,7 @@ export function BookingCalendar({
         )}
       </div>
 
-      {selectedService && selectedSlot && !confirmed && (
+      {selectedServices.length > 0 && selectedSlot && !confirmed && (
         <div className="mt-6 border-t border-beige-dark pt-6">
           {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
           {onlinePayment ? (
@@ -189,7 +216,7 @@ export function BookingCalendar({
                   disabled={loading}
                   onClick={() => confirmBooking("DEPOSIT")}
                 >
-                  Acompte en ligne ({selectedService.depositPct}%)
+                  Acompte en ligne ({depositPct}%)
                 </Button>
                 <Button
                   variant="outline"

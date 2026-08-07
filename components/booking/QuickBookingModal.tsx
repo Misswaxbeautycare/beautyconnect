@@ -35,7 +35,7 @@ export function QuickBookingModal({
   const [salons, setSalons] = useState<Salon[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [salonId, setSalonId] = useState(fixedSalonId ?? "");
-  const [serviceId, setServiceId] = useState("");
+  const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -46,7 +46,13 @@ export function QuickBookingModal({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const selectedService = services.find((s) => s.id === serviceId) ?? null;
+  const selectedServices = services.filter((s) => serviceIds.includes(s.id));
+  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalDuration = selectedServices.reduce((sum, s) => sum + s.durationMin, 0);
+
+  function toggleService(id: string) {
+    setServiceIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   // Liste de créneaux fixes toutes les 30 minutes, comme sur la page du salon.
   const timeSlots: string[] = [];
@@ -65,7 +71,7 @@ export function QuickBookingModal({
   useEffect(() => {
     if (!salonId) {
       setServices([]);
-      setServiceId("");
+      setServiceIds([]);
       return;
     }
     fetch(`/api/public/salons/${salonId}/services`)
@@ -88,8 +94,8 @@ export function QuickBookingModal({
     e.preventDefault();
     setError(null);
 
-    if (!salonId || !serviceId || !date || !time) {
-      setError("Merci de compléter la prestation, le jour et l'heure.");
+    if (!salonId || serviceIds.length === 0 || !date || !time) {
+      setError("Merci de compléter au moins une prestation, le jour et l'heure.");
       return;
     }
     if (!isLoggedIn && (!firstName || !lastName || !email || !password)) {
@@ -140,12 +146,14 @@ export function QuickBookingModal({
         await supabase.auth.signInWithPassword({ email, password });
       }
 
+      const [primaryServiceId, ...additionalServiceIds] = serviceIds;
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           salonId,
-          serviceId,
+          serviceId: primaryServiceId,
+          additionalServiceIds,
           date: new Date(`${date}T${time}`).toISOString(),
           paymentType: "ON_SITE",
         }),
@@ -201,22 +209,32 @@ export function QuickBookingModal({
           )}
 
           <div>
-            <label className="text-sm text-noir/70">Prestation (modèle)</label>
-            <select
-              value={serviceId}
-              onChange={(e) => setServiceId(e.target.value)}
-              required
-              disabled={!salonId}
-              className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or disabled:opacity-50"
-            >
-              <option value="">Choisir une prestation</option>
+            <label className="text-sm text-noir/70">
+              Prestation(s) <span className="font-normal text-noir/40">(plusieurs possibles)</span>
+            </label>
+            <div className={`mt-2 flex flex-wrap gap-2 ${!salonId ? "opacity-50" : ""}`}>
               {services.map((s) => (
-                <option key={s.id} value={s.id}>{s.name} — {formatPrice(s.price)}</option>
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={!salonId}
+                  onClick={() => toggleService(s.id)}
+                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                    serviceIds.includes(s.id)
+                      ? "border-or bg-or text-noir"
+                      : "border-beige-dark text-noir/70 hover:border-or"
+                  }`}
+                >
+                  {s.name} — {formatPrice(s.price)}
+                </button>
               ))}
-            </select>
-            {selectedService && (
-              <p className="mt-1 text-sm text-or-dark">
-                {selectedService.name} — {formatPrice(selectedService.price)} ({selectedService.durationMin} min)
+              {salonId && services.length === 0 && (
+                <p className="text-xs text-noir/40">Ce salon n&apos;a pas encore de prestations.</p>
+              )}
+            </div>
+            {selectedServices.length > 0 && (
+              <p className="mt-2 text-sm text-or-dark">
+                Total : {formatPrice(totalPrice)} ({totalDuration} min)
               </p>
             )}
           </div>

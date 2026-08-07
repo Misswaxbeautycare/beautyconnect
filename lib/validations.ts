@@ -18,6 +18,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export const bookingSchema = z.object({
   salonId: z.string().uuid(),
   serviceId: z.string().uuid(),
+  additionalServiceIds: z.array(z.string().uuid()).max(10).optional(),
   date: z.string(),
   notes: z.string().optional(),
   paymentType: z.enum(["DEPOSIT", "FULL", "ON_SITE"]),

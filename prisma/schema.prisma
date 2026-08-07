@@ -215,6 +215,7 @@ model Service {
   createdAt   DateTime @default(now())
 
   bookings    Booking[]
+  bookingItems BookingServiceItem[]
 
   @@map("services")
 }
@@ -249,9 +250,28 @@ model Booking {
   payment     Payment?
   review      Review?
   notifications Notification[]
+  additionalServices BookingServiceItem[]
 
   @@index([salonId, date])
   @@map("bookings")
+}
+
+// Prestations additionnelles pour un rendez-vous multi-prestations
+// (ex: Coiffure + Onglerie + Massage en un seul rendez-vous).
+// La prestation "principale" reste sur Booking.serviceId pour ne rien
+// casser des affichages/paiements existants ; celles-ci s'y ajoutent.
+model BookingServiceItem {
+  id          String   @id @default(uuid())
+  bookingId   String
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  // Prix et durée figés au moment de la réservation (au cas où le
+  // professionnel modifie le prix de la prestation plus tard).
+  price       Decimal  @db.Decimal(10, 2)
+  durationMin Int
+
+  @@map("booking_service_items")
 }
 
 model Payment {

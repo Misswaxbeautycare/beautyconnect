@@ -55,7 +55,7 @@ export default async function AgendaPage() {
       date: { gte: startOfDay(new Date()) },
       status: { notIn: ["CANCELLED", "REFUSED"] },
     },
-    include: { client: true, service: true, payment: true },
+    include: { client: true, service: true, payment: true, additionalServices: { include: { service: true } } },
     orderBy: { date: "asc" },
   });
 
@@ -152,12 +152,16 @@ export default async function AgendaPage() {
                 const badge = paymentBadge(b.payment);
                 const needsPaymentNudge = !b.payment || b.payment.status !== "PAID";
 
+                const tousLesServices = [
+                  b.service.name,
+                  ...(b.additionalServices ?? []).map((it: { service: { name: string } }) => it.service.name),
+                ].join(" + ");
                 return (
                   <Card key={b.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-medium text-noir">{nomClient}</p>
                       <p className="text-sm text-noir/60">
-                        {b.service.name} · {formatDate(b.date)}
+                        {tousLesServices} · {formatDate(b.date)}
                         {!b.client && (
                           <span className="ml-2 text-xs text-noir/40">
                             (ajouté manuellement)

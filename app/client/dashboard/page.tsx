@@ -18,7 +18,7 @@ export default async function ClientDashboard() {
 
   const bookings = await prisma.booking.findMany({
     where: { clientId: dbUser.id },
-    include: { salon: true, service: true, payment: true, review: true },
+    include: { salon: true, service: true, payment: true, review: true, additionalServices: { include: { service: true } } },
     orderBy: { date: "desc" },
   });
 
@@ -50,10 +50,15 @@ export default async function ClientDashboard() {
 
       <h2 className="mt-10 font-display text-xl text-noir">Mes rendez-vous</h2>
       <div className="mt-4 space-y-3">
-        {bookings.map((b: (typeof bookings)[number]) => (
+        {bookings.map((b: (typeof bookings)[number]) => {
+          const tousLesServices = [
+            b.service.name,
+            ...(b.additionalServices ?? []).map((it: { service: { name: string } }) => it.service.name),
+          ].join(" + ");
+          return (
           <Card key={b.id} className="flex flex-col gap-2 p-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-medium text-noir">{b.service.name}</p>
+              <p className="font-medium text-noir">{tousLesServices}</p>
               <p className="text-sm text-noir/60">{b.salon.name} — {formatDate(b.date)}</p>
             </div>
             <div className="flex flex-col items-start gap-2 sm:items-end">
@@ -65,7 +70,8 @@ export default async function ClientDashboard() {
               {b.review && <p className="text-xs text-noir/40">Avis déjà envoyé</p>}
             </div>
           </Card>
-        ))}
+          );
+        })}
         {bookings.length === 0 && <p className="text-noir/40">Aucun rendez-vous pour le moment.</p>}
       </div>
 

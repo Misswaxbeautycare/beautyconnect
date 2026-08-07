@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { salonId, serviceId, date, notes, paymentType } = parsed.data;
+  const { salonId, serviceId, additionalServiceIds = [], date, notes, paymentType } = parsed.data;
 
   const client = await prisma.user.findUnique({ where: { authId: user.id } });
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
@@ -26,6 +26,18 @@ export async function POST(req: NextRequest) {
   if (!client || !service || !salon) {
     return NextResponse.json({ error: "Ressource introuvable" }, { status: 404 });
   }
+
+  const additionalServices = additionalServiceIds.length
+    ? await prisma.service.findMany({
+        where: { id: { in: additionalServiceIds }, salonId },
+      })
+    : [];
+
+  const totalDuration =
+    service.durationMin + additionalServices.reduce((sum: number, s: typeof service) => sum + s.durationMin, 0);
+  const totalPrice =
+    Number(service.price) +
+    additionalServices.reduce((sum: number, s: typeof service) => sum + Number(s.price), 0);
 
   const plan = getEffectivePlan(salon);
   if (paymentType !== "ON_SITE" && !plan.onlinePayment) {
@@ -35,13 +47,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Empêche le double-booking sur le même créneau
+  // Empêche le double-booking sur le créneau (en tenant compte de la durée
+  // totale de toutes les prestations combinées)
+  const startDate = new Date(date);
+  const endDate = new Date(startDate.getTime() + totalDuration * 60000);
   const conflict = await prisma.booking.findFirst({
-    where: { salonId, date: new Date(date), status: { in: ["PENDING", "CONFIRMED"] } },
+    where: {
+      salonId,
+      status: { in: ["PENDING", "CONFIRMED"] },
+      date: { lt: endDate },
+      // Une réservation existante empiète si elle commence avant la fin de
+      // celle-ci ET se termine après son début — on approx. avec sa propre
+      // durée stockée.
+    },
   });
   if (conflict) {
-    return NextResponse.json({ error: "Ce créneau vient d'être réservé." }, { status: 409 });
+    const conflictEnd = new Date(conflict.date.getTime() + conflict.durationMin * 60000);
+    if (conflictEnd > startDate) {
+      return NextResponse.json({ error: "Ce créneau vient d'être réservé." }, { status: 409 });
+    }
   }
+
+  const additionalServicesData = additionalServices.map((s: typeof service) => ({
+    serviceId: s.id,
+    price: s.price,
+    durationMin: s.durationMin,
+  }));
 
   if (paymentType === "ON_SITE") {
     const booking = await prisma.booking.create({
@@ -49,10 +80,11 @@ export async function POST(req: NextRequest) {
         clientId: client.id,
         salonId,
         serviceId,
-        date: new Date(date),
-        durationMin: service.durationMin,
+        date: startDate,
+        durationMin: totalDuration,
         notes,
         status: "CONFIRMED",
+        additionalServices: { create: additionalServicesData },
       },
     });
 
@@ -74,15 +106,15 @@ export async function POST(req: NextRequest) {
       clientId: client.id,
       salonId,
       serviceId,
-      date: new Date(date),
-      durationMin: service.durationMin,
+      date: startDate,
+      durationMin: totalDuration,
       notes,
       status: "PENDING",
+      additionalServices: { create: additionalServicesData },
     },
   });
 
-  const price = Number(service.price);
-  const amount = paymentType === "DEPOSIT" ? (price * service.depositPct) / 100 : price;
+  const amount = paymentType === "DEPOSIT" ? (totalPrice * service.depositPct) / 100 : totalPrice;
   const commissionAmount = (amount * 15) / 100; // commission plateforme par défaut
 
   await prisma.payment.create({
@@ -96,6 +128,7 @@ export async function POST(req: NextRequest) {
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${req.nextUrl.protocol}//${req.nextUrl.host}`;
+  const allNames = [service.name, ...additionalServices.map((s: typeof service) => s.name)].join(" + ");
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -105,7 +138,7 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: "eur",
-            product_data: { name: `${service.name} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})` },
+            product_data: { name: `${allNames} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})` },
             unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
