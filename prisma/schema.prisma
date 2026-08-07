@@ -324,6 +324,10 @@ model Review {
   comment   String?
   photoUrl  String?
 
+  // Réponse publique du professionnel, affichée sous l'avis sur la fiche salon.
+  replyText String?
+  repliedAt DateTime?
+
   createdAt DateTime @default(now())
 
   @@map("reviews")

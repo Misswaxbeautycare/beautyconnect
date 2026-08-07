@@ -86,6 +86,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           rating: r.rating,
           comment: r.comment,
           createdAt: formatDate(r.createdAt),
+          replyText: r.replyText,
         })),
         openingHours: salon.openingHours.map((h: (typeof salon.openingHours)[number]) => ({
           dayOfWeek: h.dayOfWeek,

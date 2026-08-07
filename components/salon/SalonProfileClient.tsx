@@ -44,6 +44,7 @@ interface ReviewData {
   rating: number;
   comment: string | null;
   createdAt: string;
+  replyText: string | null;
 }
 
 interface OpeningHourData {
@@ -388,6 +389,12 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                     </div>
                     {r.comment && <p className="mt-1.5 text-sm text-noir/60">{r.comment}</p>}
                     <p className="mt-1.5 text-xs text-noir/40">{r.createdAt}</p>
+                    {r.replyText && (
+                      <div className="mt-3 rounded-xl bg-beige p-3">
+                        <p className="text-xs font-semibold text-noir/70">Réponse du professionnel</p>
+                        <p className="mt-1 text-sm text-noir/70">{r.replyText}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {salon.reviews.length === 0 && (
