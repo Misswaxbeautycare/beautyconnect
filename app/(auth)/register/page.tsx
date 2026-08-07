@@ -52,16 +52,38 @@ function RegisterForm() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-      <h1 className="font-display text-3xl text-noir">
-        {isPro ? "Créer mon espace professionnel" : "Créer mon compte"}
+      <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-noir/40">
+        {isPro ? "Pour les professionnels" : "Bienvenue"}
+      </p>
+      <h1 className="text-center font-display text-3xl leading-[1.15] text-noir sm:text-4xl">
+        {isPro ? (
+          <>
+            Développez{" "}
+            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+              votre salon
+            </span>
+          </>
+        ) : (
+          <>
+            Trouvez votre prochain{" "}
+            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+              rendez-vous beauté
+            </span>
+          </>
+        )}
       </h1>
-      <p className="mt-2 text-sm text-noir/60">
+      <p className="mt-4 text-center text-sm text-noir/60">
         {isPro
           ? "Rejoignez Misswaxbeautycare et développez votre activité."
-          : "Rejoignez Misswaxbeautycare en quelques secondes."}
+          : "Réservez en 2 minutes chez les meilleurs professionnels près de chez vous."}
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+      <div className="mt-10 rounded-3xl border border-beige-dark p-6 sm:p-8">
+        <h2 className="font-display text-2xl text-noir">
+          {isPro ? "Créer mon espace professionnel" : "Créer mon compte"}
+        </h2>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-sm text-noir/70">Prénom</label>
@@ -92,17 +114,18 @@ function RegisterForm() {
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Création..." : "Créer mon compte"}
         </Button>
-      </form>
+        </form>
 
-      <p className="mt-6 text-center text-sm text-noir/60">
-        Déjà un compte ?{" "}
-        <Link
-          href={searchParams.get("redirect") ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/login"}
-          className="text-or-dark underline"
-        >
-          Se connecter
-        </Link>
-      </p>
+        <p className="mt-6 text-center text-sm text-noir/60">
+          Déjà un compte ?{" "}
+          <Link
+            href={searchParams.get("redirect") ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/login"}
+            className="text-or-dark underline"
+          >
+            Se connecter
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

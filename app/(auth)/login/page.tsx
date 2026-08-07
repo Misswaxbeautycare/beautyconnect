@@ -52,9 +52,17 @@ function LoginForm() {
   }
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
-      <h1 className="font-display text-3xl text-noir">Connexion</h1>
-      <p className="mt-2 text-sm text-noir/60">Ravi de vous revoir sur Misswaxbeautycare.</p>
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+      <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-noir/40">
+        Bienvenue
+      </p>
+      <h1 className="text-center font-display text-3xl text-noir">
+        Beauty<span className="text-or">Connect</span>
+      </h1>
+
+      <div className="mt-8 rounded-3xl border border-beige-dark p-6 sm:p-8">
+        <h2 className="font-display text-xl text-noir">Connexion</h2>
+        <p className="mt-1 text-sm text-noir/60">Ravi de vous revoir sur Misswaxbeautycare.</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div>
           <label className="text-sm text-noir/70">Email</label>
           <input
@@ -91,16 +99,18 @@ function LoginForm() {
         <Button type="submit" disabled={isSubmitting} className="w-full">
           {isSubmitting ? "Connexion..." : "Se connecter"}
         </Button>
-      </form>
-      <p className="mt-6 text-center text-sm text-noir/60">
-        Pas encore de compte ?{" "}
-        <Link
-          href={searchParams.get("redirect") ? `/register?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/register"}
-          className="text-or-dark underline"
-        >
-          Créer un compte
-        </Link>
-      </p>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-noir/60">
+          Pas encore de compte ?{" "}
+          <Link
+            href={searchParams.get("redirect") ? `/register?redirect=${encodeURIComponent(searchParams.get("redirect")!)}` : "/register"}
+            className="text-or-dark underline"
+          >
+            Créer un compte
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
