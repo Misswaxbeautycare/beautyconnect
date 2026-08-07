@@ -73,6 +73,15 @@ export function QuickBookingModal({
       .then((d) => setServices(d.services ?? []));
   }, [salonId]);
 
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -159,8 +168,8 @@ export function QuickBookingModal({
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-noir/50 p-4 py-8 sm:items-center">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 pt-7 sm:p-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-noir/50 p-4">
+      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 sm:p-8">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="font-display text-2xl text-noir">Prendre rendez-vous</h2>
