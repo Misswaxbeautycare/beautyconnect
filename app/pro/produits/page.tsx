@@ -46,6 +46,7 @@ export default async function ProduitsPage() {
     price: Number(p.price),
     stock: p.stock,
     isActive: p.isActive,
+    imageUrl: p.imageUrl,
   }));
 
   return (

@@ -34,6 +34,7 @@ interface ProductData {
   id: string;
   name: string;
   price: number;
+  imageUrl: string | null;
 }
 
 interface ReviewData {
@@ -309,11 +310,18 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                     {salon.products.map((p) => (
                       <div
                         key={p.id}
-                        className="flex items-center justify-between rounded-2xl border border-beige-dark p-4"
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-beige-dark p-4"
                       >
-                        <div>
-                          <p className="font-medium text-noir">{p.name}</p>
-                          <p className="text-sm text-noir/60">{formatPrice(p.price)}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-beige">
+                            {p.imageUrl && (
+                              <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-noir">{p.name}</p>
+                            <p className="text-sm text-noir/60">{formatPrice(p.price)}</p>
+                          </div>
                         </div>
                         <BuyProductButton productId={p.id} />
                       </div>
