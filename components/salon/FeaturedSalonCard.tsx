@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Star, Heart } from "lucide-react";
+import { Star } from "lucide-react";
+import { FavoriteButton } from "@/components/salon/FavoriteButton";
 
 export interface SalonCardData {
   id: string;
@@ -9,6 +10,7 @@ export interface SalonCardData {
   categorieLabel: string;
   note: number | null;
   nombreAvis: number;
+  isFavorited?: boolean;
 }
 
 // Carte "à la une" utilisée dans les rangées de recommandations,
@@ -24,7 +26,7 @@ export function FeaturedSalonCard({ salon }: { salon: SalonCardData }) {
         style={salon.coverUrl ? { backgroundImage: `url(${salon.coverUrl})` } : undefined}
       >
         {!salon.coverUrl && (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-or-dark to-[#4A2F14]">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-or to-noir">
             <span className="font-display text-2xl text-white/30">
               {salon.name.charAt(0)}
             </span>
@@ -33,13 +35,11 @@ export function FeaturedSalonCard({ salon }: { salon: SalonCardData }) {
         <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-noir shadow-sm">
           À la une
         </span>
-        <button
-          type="button"
-          aria-label="Ajouter aux favoris"
-          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-noir/70 shadow-sm transition hover:text-or-dark"
-        >
-          <Heart size={15} />
-        </button>
+        <FavoriteButton
+          salonId={salon.id}
+          initialFavorited={salon.isFavorited}
+          className="absolute right-3 top-3"
+        />
       </div>
       <div className="mt-2.5 flex items-start justify-between gap-2">
         <div className="min-w-0">

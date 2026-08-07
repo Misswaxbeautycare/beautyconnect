@@ -14,7 +14,7 @@ export function SalonListRow({ salon }: { salon: SalonCardData }) {
         style={salon.coverUrl ? { backgroundImage: `url(${salon.coverUrl})` } : undefined}
       >
         {!salon.coverUrl && (
-          <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-or-dark to-[#4A2F14]">
+          <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-or to-noir">
             <span className="font-display text-lg text-white/30">
               {salon.name.charAt(0)}
             </span>

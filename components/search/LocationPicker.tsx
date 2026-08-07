@@ -1,14 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ArrowLeft, Search, Navigation, MapPin } from "lucide-react";
 
-export function LocationPicker() {
+export function LocationPicker({ initialVille }: { initialVille?: string }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [label, setLabel] = useState("Position actuelle");
+  const [query, setQuery] = useState(initialVille ?? "");
   const [loadingGeo, setLoadingGeo] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const label = initialVille || "Toute la Belgique";
+
+  function goToVille(ville: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (ville) {
+      params.set("ville", ville);
+    } else {
+      params.delete("ville");
+    }
+    router.push(`${pathname}?${params.toString()}`);
+    setOpen(false);
+  }
 
   async function handleUseCurrentLocation() {
     if (!navigator.geolocation) {
@@ -32,13 +49,16 @@ export function LocationPicker() {
             data.address?.town ||
             data.address?.village ||
             data.address?.municipality ||
-            "Position actuelle";
-          setLabel(ville);
-        } catch {
-          setLabel("Position actuelle");
-        } finally {
+            "";
           setLoadingGeo(false);
-          setOpen(false);
+          if (ville) {
+            goToVille(ville);
+          } else {
+            setError("Impossible de déterminer votre ville. Essayez de la saisir directement.");
+          }
+        } catch {
+          setLoadingGeo(false);
+          setError("Impossible de déterminer votre ville. Essayez de la saisir directement.");
         }
       },
       () => {
@@ -52,51 +72,64 @@ export function LocationPicker() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-neutral-800"
+        className="flex items-center gap-1.5 text-sm font-medium text-noir"
       >
-        <MapPin size={18} className="text-violet-600" />
+        <MapPin size={18} className="text-or-dark" />
         {label}
-        <span className="text-neutral-400">▾</span>
+        <span className="text-noir/40">▾</span>
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
-          <div className="flex items-center gap-4 px-6 py-5 border-b border-neutral-100">
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <div className="flex items-center gap-4 border-b border-beige-dark px-6 py-5">
             <button onClick={() => setOpen(false)} aria-label="Retour">
-              <ArrowLeft size={22} />
+              <ArrowLeft size={22} className="text-noir" />
             </button>
-            <h2 className="text-xl font-bold">Adresse</h2>
+            <h2 className="font-display text-xl text-noir">Adresse</h2>
           </div>
 
-          <div className="px-6 pt-5">
-            <div className="flex items-center gap-3 rounded-xl border border-violet-500 px-4 py-3.5">
-              <Search size={18} className="text-neutral-400 shrink-0" />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              goToVille(query.trim());
+            }}
+            className="px-6 pt-5"
+          >
+            <div className="flex items-center gap-3 rounded-xl border border-or px-4 py-3.5">
+              <Search size={18} className="shrink-0 text-noir/40" />
               <input
                 autoFocus
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un établissement"
-                className="flex-1 outline-none text-sm bg-transparent placeholder:text-neutral-400"
+                placeholder="Rechercher une ville"
+                className="flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
               />
             </div>
-          </div>
+          </form>
 
           <button
             onClick={handleUseCurrentLocation}
-            className="flex items-center gap-4 px-6 py-4 mt-2 text-left hover:bg-neutral-50"
+            className="mt-2 flex items-center gap-4 px-6 py-4 text-left hover:bg-beige"
           >
-            <span className="h-9 w-9 flex items-center justify-center rounded-full bg-violet-100">
-              <Navigation size={16} className="text-violet-600" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-beige">
+              <Navigation size={16} className="text-or-dark" />
             </span>
-            <span className="text-base">
-              {loadingGeo ? "Localisation en cours..." : "Position actuelle"}
+            <span className="text-base text-noir">
+              {loadingGeo ? "Localisation en cours..." : "Utiliser ma position actuelle"}
             </span>
           </button>
 
-          {error && (
-            <p className="px-6 text-sm text-red-500 mt-2">{error}</p>
+          {initialVille && (
+            <button
+              onClick={() => goToVille("")}
+              className="mx-6 mt-2 text-left text-sm text-noir/50 underline"
+            >
+              Réinitialiser (toute la Belgique)
+            </button>
           )}
+
+          {error && <p className="mt-2 px-6 text-sm text-red-600">{error}</p>}
         </div>
       )}
     </>

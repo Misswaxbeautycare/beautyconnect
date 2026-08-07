@@ -5,19 +5,34 @@ import { categories } from "@/lib/categories";
 import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
 import { getEffectivePlan } from "@/lib/subscription-plans";
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { getCurrentDbUser } from "@/lib/auth";
 
 const heroServices = ["Coiffure", "Esthétique", "Onglerie", "Spa", "Massage"];
 
 async function getRecommandes(): Promise<SalonCardData[]> {
   try {
-    const salonsRaw = await prisma.salon.findMany({
-      where: { isActive: true },
-      include: {
-        categories: { include: { category: true } },
-        reviews: { select: { rating: true } },
-      },
-      take: 20,
-    });
+    const [salonsRaw, dbUser] = await Promise.all([
+      prisma.salon.findMany({
+        where: { isActive: true },
+        include: {
+          categories: { include: { category: true } },
+          reviews: { select: { rating: true } },
+        },
+        take: 20,
+      }),
+      getCurrentDbUser(),
+    ]);
+
+    const favoriteIds = dbUser
+      ? new Set(
+          (
+            await prisma.favorite.findMany({
+              where: { clientId: dbUser.id },
+              select: { salonId: true },
+            })
+          ).map((f: { salonId: string }) => f.salonId)
+        )
+      : new Set<string>();
 
     return salonsRaw
       .map((salon) => {
@@ -35,6 +50,7 @@ async function getRecommandes(): Promise<SalonCardData[]> {
           note: noteMoyenne,
           nombreAvis: salon.reviews.length,
           priority: plan.priorityPlacement ? 1 : 0,
+          isFavorited: favoriteIds.has(salon.id),
         };
       })
       .sort((a, b) => {
@@ -50,6 +66,7 @@ async function getRecommandes(): Promise<SalonCardData[]> {
         categorieLabel: salon.categorieLabel,
         note: salon.note,
         nombreAvis: salon.nombreAvis,
+        isFavorited: salon.isFavorited,
       }));
   } catch (err) {
     // Dégradation silencieuse : la page d'accueil reste utilisable même si

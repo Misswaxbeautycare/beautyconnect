@@ -15,6 +15,7 @@ import {
 import { cn, formatPrice } from "@/lib/utils";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { BuyProductButton } from "@/components/BuyProductButton";
+import { FavoriteButton } from "@/components/salon/FavoriteButton";
 
 /* ============================================================
    TYPES — tout provient de app/salon/[id]/page.tsx (données réelles)
@@ -80,6 +81,7 @@ export interface SalonProfileData {
   teamMembers: TeamMemberData[];
   bookedSlots: string[];
   onlinePayment: boolean;
+  isFavorited: boolean;
 }
 
 const TABS = [
@@ -172,13 +174,20 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
         >
           <ArrowLeft size={18} />
         </Link>
-        <button
-          onClick={handleShare}
-          className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-noir shadow-md backdrop-blur transition hover:bg-beige lg:hidden"
-          aria-label="Partager"
-        >
-          <Share2 size={16} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleShare}
+            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-noir shadow-md backdrop-blur transition hover:bg-beige"
+            aria-label="Partager"
+          >
+            <Share2 size={16} />
+          </button>
+          <FavoriteButton
+            salonId={salon.id}
+            initialFavorited={salon.isFavorited}
+            className="pointer-events-auto bg-white/95 shadow-md backdrop-blur"
+          />
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-0 lg:px-6">

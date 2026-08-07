@@ -2,29 +2,41 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getEffectivePlan } from "@/lib/subscription-plans";
 import { formatDate } from "@/lib/utils";
+import { getCurrentDbUser } from "@/lib/auth";
 import { SalonProfileClient } from "@/components/salon/SalonProfileClient";
 
 export default async function SalonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const salon = await prisma.salon.findUnique({
-    where: { id },
-    include: {
-      services: { where: { isActive: true }, include: { category: true } },
-      categories: { include: { category: true } },
-      photos: { orderBy: { order: "asc" } },
-      openingHours: true,
-      teamMembers: { orderBy: { order: "asc" } },
-      reviews: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 20 },
-      products: { where: { isActive: true } },
-      bookings: {
-        where: { status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
-        select: { date: true },
+  const [salon, dbUser] = await Promise.all([
+    prisma.salon.findUnique({
+      where: { id },
+      include: {
+        services: { where: { isActive: true }, include: { category: true } },
+        categories: { include: { category: true } },
+        photos: { orderBy: { order: "asc" } },
+        openingHours: true,
+        teamMembers: { orderBy: { order: "asc" } },
+        reviews: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 20 },
+        products: { where: { isActive: true } },
+        bookings: {
+          where: { status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
+          select: { date: true },
+        },
       },
-    },
-  });
+    }),
+    getCurrentDbUser(),
+  ]);
 
   if (!salon) notFound();
+
+  const isFavorited = dbUser
+    ? Boolean(
+        await prisma.favorite.findUnique({
+          where: { clientId_salonId: { clientId: dbUser.id, salonId: salon.id } },
+        })
+      )
+    : false;
 
   const plan = getEffectivePlan(salon);
   const averageRating =
@@ -89,6 +101,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         })),
         bookedSlots: salon.bookings.map((b: (typeof salon.bookings)[number]) => b.date.toISOString()),
         onlinePayment: plan.onlinePayment,
+        isFavorited,
       }}
     />
   );

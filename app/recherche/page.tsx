@@ -6,6 +6,7 @@ import { categories } from "@/lib/categories";
 import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/FeaturedSalonCard";
 import { SalonListRow } from "@/components/salon/SalonListRow";
 import { getEffectivePlan } from "@/lib/subscription-plans";
+import { getCurrentDbUser } from "@/lib/auth";
 
 interface RecherchePageProps {
   searchParams: Promise<{
@@ -14,51 +15,67 @@ interface RecherchePageProps {
     ville?: string;
     prixMax?: string;
     disponible?: string;
+    tri?: string;
   }>;
 }
 
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
-  const { q, categorie, ville, prixMax, disponible } = await searchParams;
+  const { q, categorie, ville, prixMax, disponible, tri } = await searchParams;
   const prixMaxNum = prixMax ? Number(prixMax) : null;
 
   let salons: SalonCardData[] = [];
   let errorMessage: string | null = null;
 
   try {
-    const salonsRaw = await prisma.salon.findMany({
-      where: {
-        isActive: true,
-        AND: [
-          q
-            ? {
-                OR: [
-                  { name: { contains: q, mode: "insensitive" } },
-                  { city: { contains: q, mode: "insensitive" } },
-                ],
-              }
-            : {},
-          categorie
-            ? { categories: { some: { category: { slug: categorie } } } }
-            : {},
-          ville ? { city: { contains: ville, mode: "insensitive" } } : {},
-          prixMaxNum
-            ? { services: { some: { isActive: true, price: { lte: prixMaxNum } } } }
-            : {},
-        ],
-      },
-      include: {
-        categories: { include: { category: true } },
-        reviews: { select: { rating: true } },
-        bookings: {
-          where: {
-            status: { in: ["CONFIRMED", "PENDING"] },
-            date: { gte: new Date(), lt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
-          },
-          select: { id: true },
+    const [salonsRaw, dbUser] = await Promise.all([
+      prisma.salon.findMany({
+        where: {
+          isActive: true,
+          AND: [
+            q
+              ? {
+                  OR: [
+                    { name: { contains: q, mode: "insensitive" } },
+                    { city: { contains: q, mode: "insensitive" } },
+                  ],
+                }
+              : {},
+            categorie
+              ? { categories: { some: { category: { slug: categorie } } } }
+              : {},
+            ville ? { city: { contains: ville, mode: "insensitive" } } : {},
+            prixMaxNum
+              ? { services: { some: { isActive: true, price: { lte: prixMaxNum } } } }
+              : {},
+          ],
         },
-      },
-      take: 30,
-    });
+        include: {
+          categories: { include: { category: true } },
+          reviews: { select: { rating: true } },
+          services: { where: { isActive: true }, select: { price: true } },
+          bookings: {
+            where: {
+              status: { in: ["CONFIRMED", "PENDING"] },
+              date: { gte: new Date(), lt: new Date(Date.now() + 48 * 60 * 60 * 1000) },
+            },
+            select: { id: true },
+          },
+        },
+        take: 30,
+      }),
+      getCurrentDbUser(),
+    ]);
+
+    const favoriteIds = dbUser
+      ? new Set(
+          (
+            await prisma.favorite.findMany({
+              where: { clientId: dbUser.id },
+              select: { salonId: true },
+            })
+          ).map((f: { salonId: string }) => f.salonId)
+        )
+      : new Set<string>();
 
     salons = salonsRaw
       .map((salon) => {
@@ -67,6 +84,8 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
             ? salon.reviews.reduce((sum, r) => sum + r.rating, 0) / salon.reviews.length
             : null;
         const plan = getEffectivePlan(salon);
+        const prixMin =
+          salon.services.length > 0 ? Math.min(...salon.services.map((s) => Number(s.price))) : null;
         // Approximation : un salon avec peu de rendez-vous déjà pris dans
         // les 48h a de bonnes chances d'avoir un créneau proche disponible.
         const disponibiliteImmediate = salon.bookings.length < 20;
@@ -80,10 +99,16 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
           nombreAvis: salon.reviews.length,
           priority: plan.priorityPlacement ? 1 : 0,
           disponibiliteImmediate,
+          prixMin,
+          isFavorited: favoriteIds.has(salon.id),
         };
       })
       .filter((s) => (disponible === "1" ? s.disponibiliteImmediate : true))
       .sort((a, b) => {
+        if (tri === "prix_asc") return (a.prixMin ?? Infinity) - (b.prixMin ?? Infinity);
+        if (tri === "prix_desc") return (b.prixMin ?? -Infinity) - (a.prixMin ?? -Infinity);
+        if (tri === "note") return (b.note ?? 0) - (a.note ?? 0);
+        // Tri par défaut : mise en avant prioritaire, puis meilleure note
         if (b.priority !== a.priority) return b.priority - a.priority;
         return (b.note ?? 0) - (a.note ?? 0);
       })
@@ -95,6 +120,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         categorieLabel: salon.categorieLabel,
         note: salon.note,
         nombreAvis: salon.nombreAvis,
+        isFavorited: salon.isFavorited,
       }));
   } catch (err) {
     console.error("[/recherche] Erreur Prisma:", err);
@@ -108,7 +134,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
   return (
     <main className="min-h-screen bg-white">
       <div className="flex items-center justify-between px-6 pt-6 pb-4">
-        <LocationPicker />
+        <LocationPicker initialVille={ville} />
         <Link
           href="/"
           className="flex h-11 w-11 items-center justify-center rounded-full bg-or text-noir transition hover:bg-or-dark hover:text-white"
@@ -119,6 +145,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
       <div className="px-6 pb-4">
         <form className="flex items-center gap-3 rounded-full border border-beige-dark bg-white pl-5 pr-1.5 py-1.5 shadow-sm">
+          {ville && <input type="hidden" name="ville" value={ville} />}
           <Search size={18} className="shrink-0 text-noir/40" />
           <input
             type="text"
@@ -139,6 +166,17 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
       <form className="flex flex-wrap items-center gap-3 px-6 pb-6">
         {q && <input type="hidden" name="q" value={q} />}
         {categorie && <input type="hidden" name="categorie" value={categorie} />}
+        {ville && <input type="hidden" name="ville" value={ville} />}
+        <select
+          name="tri"
+          defaultValue={tri ?? ""}
+          className="rounded-full border border-beige-dark bg-white px-4 py-2 text-sm text-noir/70 outline-none focus:border-or"
+        >
+          <option value="">Trier : recommandés</option>
+          <option value="note">Mieux notés</option>
+          <option value="prix_asc">Prix croissant</option>
+          <option value="prix_desc">Prix décroissant</option>
+        </select>
         <select
           name="prixMax"
           defaultValue={prixMax ?? ""}
