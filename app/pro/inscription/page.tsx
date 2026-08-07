@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { ProMenuDrawer } from "@/components/pro/ProMenuDrawer";
 
 export default function ProInscriptionPage() {
   const router = useRouter();
@@ -67,6 +68,9 @@ export default function ProInscriptionPage() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
+      <div className="mb-4 flex justify-end">
+        <ProMenuDrawer />
+      </div>
       <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-noir/40">
         Pour les professionnels
       </p>
