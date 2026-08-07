@@ -98,6 +98,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Le professionnel doit aussi être averti qu'un nouveau rendez-vous
+    // vient d'être pris sur son agenda.
+    await prisma.notification.create({
+      data: {
+        userId: salon.ownerId,
+        bookingId: booking.id,
+        type: "BOOKING_CONFIRMATION",
+        title: "Nouveau rendez-vous",
+        message: `${client.firstName} a réservé ${service.name} le ${startDate.toLocaleDateString("fr-BE")} à ${startDate.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}.`,
+      },
+    });
+
     return NextResponse.json({ bookingId: booking.id, confirmed: true });
   }
 

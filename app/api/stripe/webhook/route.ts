@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         data: { status: "PAID", stripePaymentIntentId: session.payment_intent as string },
       });
 
-      const booking = await prisma.booking.findUnique({ where: { id: bookingId } });
+      const booking = await prisma.booking.findUnique({ where: { id: bookingId }, include: { salon: true, service: true } });
       if (booking && booking.clientId) {
         await prisma.notification.create({
           data: {
@@ -79,6 +79,15 @@ export async function POST(req: NextRequest) {
             type: "BOOKING_CONFIRMATION",
             title: "Réservation confirmée",
             message: "Votre rendez-vous a bien été confirmé et payé. Merci de bien respecter votre horaire — prévenez le salon en cas d'empêchement.",
+          },
+        });
+        await prisma.notification.create({
+          data: {
+            userId: booking.salon.ownerId,
+            bookingId: booking.id,
+            type: "PAYMENT_RECEIVED",
+            title: "Nouveau rendez-vous payé",
+            message: `${booking.service.name} réservé et payé en ligne le ${booking.date.toLocaleDateString("fr-BE")} à ${booking.date.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}.`,
           },
         });
         // TODO : déclencher l'envoi d'email (Resend) + programmer les rappels 24h/2h

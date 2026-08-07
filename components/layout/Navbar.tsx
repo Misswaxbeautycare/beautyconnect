@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { ReserverButton } from "@/components/layout/ReserverButton";
+import { NotificationBell } from "@/components/NotificationBell";
+import { getCurrentDbUser } from "@/lib/auth";
 
 const links = [
   { href: "/recherche", label: "Trouver un pro" },
   { href: "/pro/dashboard", label: "Espace pro" },
 ];
 
-export function Navbar() {
+export async function Navbar() {
+  const dbUser = await getCurrentDbUser();
+  const isPro = dbUser?.role === "PROFESSIONAL" || dbUser?.role === "ADMIN";
+
   return (
     <header className="sticky top-0 z-50 border-b border-beige-dark bg-white backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
@@ -25,9 +30,13 @@ export function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link href="/login" className="hidden text-sm text-noir/70 hover:text-or md:block">
-            Connexion
-          </Link>
+          {dbUser ? (
+            <NotificationBell destinationHref={isPro ? "/pro/dashboard" : "/client/dashboard"} />
+          ) : (
+            <Link href="/login" className="hidden text-sm text-noir/70 hover:text-or md:block">
+              Connexion
+            </Link>
+          )}
           <ReserverButton />
         </div>
       </div>
