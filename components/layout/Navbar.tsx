@@ -3,7 +3,6 @@ import { ReserverButton } from "@/components/layout/ReserverButton";
 
 const links = [
   { href: "/recherche", label: "Trouver un pro" },
-  { href: "/boutique", label: "Boutique" },
   { href: "/pro/dashboard", label: "Espace pro" },
 ];
 
