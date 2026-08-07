@@ -14,6 +14,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
       categories: { include: { category: true } },
       photos: { orderBy: { order: "asc" } },
       openingHours: true,
+      teamMembers: { orderBy: { order: "asc" } },
       reviews: { include: { client: true }, orderBy: { createdAt: "desc" }, take: 20 },
       products: { where: { isActive: true } },
       bookings: {
@@ -78,6 +79,12 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           openTime: h.openTime,
           closeTime: h.closeTime,
           isClosed: h.isClosed,
+        })),
+        teamMembers: salon.teamMembers.map((m: (typeof salon.teamMembers)[number]) => ({
+          id: m.id,
+          name: m.name,
+          role: m.role,
+          photoUrl: m.photoUrl,
         })),
         bookedSlots: salon.bookings.map((b: (typeof salon.bookings)[number]) => b.date.toISOString()),
         onlinePayment: plan.onlinePayment,

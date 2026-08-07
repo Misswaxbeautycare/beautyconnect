@@ -130,6 +130,7 @@ model Salon {
   photos         SalonPhoto[]
   openingHours   OpeningHour[]
   closedDays     ClosedDay[]
+  teamMembers    TeamMember[]
   bookings       Booking[]
   reviews        Review[]
   favorites      Favorite[]
@@ -170,6 +171,24 @@ model ClosedDay {
   reason  String?
 
   @@map("closed_days")
+}
+
+// Membre de l'équipe affiché sur la fiche du salon (photo, spécialité).
+// Distinct de User : ce n'est pas forcément quelqu'un ayant un compte sur
+// la plateforme, juste une fiche que le professionnel gère lui-même.
+model TeamMember {
+  id        String   @id @default(uuid())
+  salonId   String
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+
+  name      String
+  role      String?
+  photoUrl  String?
+  order     Int      @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@map("team_members")
 }
 
 // ------------------------------------------------------------

@@ -53,3 +53,10 @@ export const reviewSchema = z.object({
   photoUrl: z.string().url().optional(),
 });
 export type ReviewInput = z.infer<typeof reviewSchema>;
+
+export const teamMemberSchema = z.object({
+  name: z.string().min(2, "Nom trop court"),
+  role: z.string().optional(),
+  photoUrl: z.string().url().optional(),
+});
+export type TeamMemberInput = z.infer<typeof teamMemberSchema>;

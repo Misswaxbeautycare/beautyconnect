@@ -51,6 +51,13 @@ interface OpeningHourData {
   isClosed: boolean;
 }
 
+interface TeamMemberData {
+  id: string;
+  name: string;
+  role: string | null;
+  photoUrl: string | null;
+}
+
 export interface SalonProfileData {
   id: string;
   name: string;
@@ -69,6 +76,7 @@ export interface SalonProfileData {
   products: ProductData[];
   reviews: ReviewData[];
   openingHours: OpeningHourData[];
+  teamMembers: TeamMemberData[];
   bookedSlots: string[];
   onlinePayment: boolean;
 }
@@ -76,6 +84,7 @@ export interface SalonProfileData {
 const TABS = [
   { key: "apropos", label: "À propos" },
   { key: "prestations", label: "Prestations" },
+  { key: "equipe", label: "Équipe" },
   { key: "avis", label: "Avis" },
   { key: "infos", label: "Infos" },
 ] as const;
@@ -93,10 +102,16 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
   const sectionRefs = {
     apropos: useRef<HTMLDivElement>(null),
     prestations: useRef<HTMLDivElement>(null),
+    equipe: useRef<HTMLDivElement>(null),
     avis: useRef<HTMLDivElement>(null),
     infos: useRef<HTMLDivElement>(null),
   };
   const reserverRef = useRef<HTMLDivElement>(null);
+
+  const visibleTabs = useMemo(
+    () => TABS.filter((t) => t.key !== "equipe" || salon.teamMembers.length > 0),
+    [salon.teamMembers.length]
+  );
 
   const categories = useMemo(
     () => Array.from(new Set(salon.services.map((s) => s.categoryName))),
@@ -212,7 +227,7 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
             {/* Onglets */}
             <div className="sticky top-0 z-20 -mx-6 mt-6 border-b border-beige-dark bg-white/95 px-6 backdrop-blur lg:static lg:mx-0 lg:bg-transparent lg:px-0 lg:backdrop-blur-none">
               <div className="flex gap-6 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {TABS.map((t) => (
+                {visibleTabs.map((t) => (
                   <button
                     key={t.key}
                     onClick={() => goToTab(t.key)}
@@ -307,6 +322,33 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 </div>
               )}
             </div>
+
+            {/* Équipe */}
+            {salon.teamMembers.length > 0 && (
+              <div ref={sectionRefs.equipe} className="scroll-mt-24 border-t border-beige-dark py-8">
+                <h2 className="mb-4 font-display text-xl text-noir">Équipe</h2>
+                <div className="flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {salon.teamMembers.map((m) => (
+                    <div
+                      key={m.id}
+                      className="w-28 shrink-0 rounded-2xl border border-beige-dark p-3.5 text-center"
+                    >
+                      <div className="mx-auto mb-2.5 h-14 w-14 overflow-hidden rounded-full bg-beige">
+                        {m.photoUrl ? (
+                          <img src={m.photoUrl} alt={m.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center font-display text-lg text-or-dark">
+                            {m.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <p className="truncate text-xs font-semibold text-noir">{m.name}</p>
+                      {m.role && <p className="truncate text-[10.5px] text-noir/50">{m.role}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Avis */}
             <div ref={sectionRefs.avis} className="scroll-mt-24 border-t border-beige-dark py-8">
