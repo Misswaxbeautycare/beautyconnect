@@ -46,8 +46,27 @@ export function QuickBookingModal({
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
+
+  async function checkEmail() {
+    if (!email.trim() || !email.includes("@")) {
+      setEmailExists(false);
+      return;
+    }
+    setCheckingEmail(true);
+    try {
+      const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(email.trim())}`);
+      const data = await res.json();
+      setEmailExists(Boolean(data.exists));
+    } catch {
+      setEmailExists(false);
+    } finally {
+      setCheckingEmail(false);
+    }
+  }
   const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.durationMin, 0);
 
@@ -97,6 +116,10 @@ export function QuickBookingModal({
 
     if (!salonId || serviceIds.length === 0 || !date || !time) {
       setError("Merci de compléter au moins une prestation, le jour et l'heure.");
+      return;
+    }
+    if (!isLoggedIn && emailExists) {
+      setError("Ce compte existe déjà — connectez-vous pour continuer votre réservation.");
       return;
     }
     if (!isLoggedIn && (!firstName || !lastName || !email || !password)) {
@@ -356,32 +379,48 @@ export function QuickBookingModal({
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setEmailExists(false); }}
+                  onBlur={checkEmail}
                   required
                   className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
                 />
+                {checkingEmail && <p className="mt-1 text-xs text-noir/40">Vérification...</p>}
+                {emailExists && !checkingEmail && (
+                  <p className="mt-1.5 rounded-lg bg-beige px-3 py-2 text-xs text-noir/70">
+                    Un compte existe déjà avec cet email.{" "}
+                    <a
+                      href={`/login?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/")}`}
+                      className="font-medium text-or-dark underline"
+                    >
+                      Connectez-vous
+                    </a>{" "}
+                    pour continuer votre réservation.
+                  </p>
+                )}
               </div>
-              <div>
-                <label className="text-sm text-noir/70">Mot de passe</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
-                />
-                <p className="mt-1 text-xs text-noir/40">
-                  Déjà un compte ?{" "}
-                  <a href="/login" className="text-or-dark underline">Connectez-vous plutôt</a>
-                </p>
-              </div>
+              {!emailExists && (
+                <div>
+                  <label className="text-sm text-noir/70">Mot de passe</label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+                  />
+                  <p className="mt-1 text-xs text-noir/40">
+                    Déjà un compte ?{" "}
+                    <a href="/login" className="text-or-dark underline">Connectez-vous plutôt</a>
+                  </p>
+                </div>
+              )}
             </>
           )}
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting || (!isLoggedIn && emailExists)} className="w-full">
             {submitting ? "Réservation..." : "Réserver ce créneau"}
           </Button>
           <p className="text-center text-xs text-noir/40">
