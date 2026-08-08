@@ -67,7 +67,7 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-2xl border border-beige-dark bg-white shadow-xl">
+          <div className="fixed inset-x-4 top-16 z-50 mx-auto max-h-96 w-auto max-w-sm overflow-y-auto rounded-2xl border border-beige-dark bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
             <div className="flex items-center justify-between border-b border-beige-dark px-4 py-3">
               <p className="text-sm font-semibold text-noir">Notifications</p>
             </div>
