@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ServicesList } from "@/components/pro/ServicesList";
 import { ServiceTemplatesPicker } from "@/components/pro/ServiceTemplatesPicker";
+import { getEffectivePlan } from "@/lib/subscription-plans";
 
 export default async function PrestationsPage() {
   const supabase = await createClient();
@@ -22,14 +23,18 @@ export default async function PrestationsPage() {
     orderBy: { name: "asc" },
   });
 
-  const services = servicesRaw.map((s: { id: string; name: string; price: unknown; durationMin: number; isActive: boolean; category: { name: string } }) => ({
+  const services = servicesRaw.map((s: (typeof servicesRaw)[number]) => ({
     id: s.id,
     name: s.name,
     price: Number(s.price),
     durationMin: s.durationMin,
+    depositPct: s.depositPct,
+    modes: s.modes,
     isActive: s.isActive,
     category: s.category,
   }));
+
+  const plan = getEffectivePlan(salon);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -50,7 +55,7 @@ export default async function PrestationsPage() {
         <ServiceTemplatesPicker />
       </div>
 
-      <ServicesList services={services} />
+      <ServicesList services={services} allowMultiMode={plan.multiModePrestations} />
     </div>
   );
 }

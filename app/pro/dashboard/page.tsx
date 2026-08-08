@@ -118,6 +118,12 @@ export default async function ProDashboard() {
             Mon abonnement
           </Link>
           <Link
+            href="/pro/parametres"
+            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
+          >
+            Paramètres
+          </Link>
+          <Link
             href="/pro/agenda"
             className="rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
           >
