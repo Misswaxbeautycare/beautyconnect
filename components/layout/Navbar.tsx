@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ReserverButton } from "@/components/layout/ReserverButton";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getCurrentDbUser } from "@/lib/auth";
@@ -15,8 +16,11 @@ export async function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-beige-dark bg-white backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <Link href="/" className="font-display text-xl tracking-tight text-noir">
-          Beauty<span className="text-or">Connect</span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="Beauty Connect" width={32} height={38} className="h-9 w-auto" priority />
+          <span className="font-display text-xl tracking-tight text-noir">
+            Beauty<span className="text-or">Connect</span>
+          </span>
         </Link>
         <nav className="hidden gap-8 md:flex">
           {links.map((l) => (
