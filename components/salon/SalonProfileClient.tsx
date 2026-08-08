@@ -295,9 +295,14 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
               {salon.categoryLabels.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {salon.categoryLabels.map((c) => (
-                    <span key={c} className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => goToTab("prestations")}
+                      className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70 transition hover:bg-beige-dark hover:text-noir"
+                    >
                       {c}
-                    </span>
+                    </button>
                   ))}
                 </div>
               )}

@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { X } from "lucide-react";
+import { X, ShoppingBasket, Plus, Check } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 type Salon = { id: string; name: string; city: string };
@@ -45,6 +45,7 @@ export function QuickBookingModal({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showCart, setShowCart] = useState(false);
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
   const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
@@ -209,25 +210,74 @@ export function QuickBookingModal({
           )}
 
           <div>
-            <label className="text-sm text-noir/70">
-              Prestation(s) <span className="font-normal text-noir/40">(plusieurs possibles)</span>
-            </label>
-            <div className={`mt-2 flex flex-wrap gap-2 ${!salonId ? "opacity-50" : ""}`}>
-              {services.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  disabled={!salonId}
-                  onClick={() => toggleService(s.id)}
-                  className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                    serviceIds.includes(s.id)
-                      ? "border-or bg-or text-noir"
-                      : "border-beige-dark text-noir/70 hover:border-or"
-                  }`}
-                >
-                  {s.name} — {formatPrice(s.price)}
-                </button>
-              ))}
+            <div className="flex items-center justify-between">
+              <label className="text-sm text-noir/70">
+                Prestation(s) <span className="font-normal text-noir/40">(plusieurs possibles)</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowCart((v) => !v)}
+                aria-label="Voir le panier"
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-beige-dark text-noir/70 hover:border-or hover:text-noir"
+              >
+                <ShoppingBasket size={15} />
+                {selectedServices.length > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-or text-[10px] font-bold text-noir">
+                    {selectedServices.length}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            {showCart && selectedServices.length > 0 && (
+              <div className="mt-2 rounded-2xl border border-beige-dark bg-beige/50 p-3">
+                <div className="flex flex-col gap-1.5">
+                  {selectedServices.map((s) => (
+                    <div key={s.id} className="flex items-center justify-between gap-2 text-sm">
+                      <span className="text-noir">{s.name}</span>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-medium text-noir">{formatPrice(s.price)}</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleService(s.id)}
+                          aria-label={`Retirer ${s.name}`}
+                          className="text-noir/40 hover:text-red-600"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className={`mt-2 flex flex-col gap-2 ${!salonId ? "opacity-50" : ""}`}>
+              {services.map((s) => {
+                const active = serviceIds.includes(s.id);
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    disabled={!salonId}
+                    onClick={() => toggleService(s.id)}
+                    className={`flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left text-sm transition-colors ${
+                      active ? "border-or bg-beige" : "border-beige-dark text-noir/70 hover:border-or"
+                    }`}
+                  >
+                    <span className="text-noir">
+                      {s.name} <span className="text-noir/50">— {formatPrice(s.price)}</span>
+                    </span>
+                    <span
+                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${
+                        active ? "border-or bg-or text-noir" : "border-beige-dark text-noir/40"
+                      }`}
+                    >
+                      {active ? <Check size={13} /> : <Plus size={13} />}
+                    </span>
+                  </button>
+                );
+              })}
               {salonId && services.length === 0 && (
                 <p className="text-xs text-noir/40">Ce salon n&apos;a pas encore de prestations.</p>
               )}

@@ -8,6 +8,17 @@
   color-scheme: light only;
 }
 
+/* Certains navigateurs mobiles (Samsung Internet, Chrome "Thème sombre
+   pour les sites") réécrivent les couleurs même quand color-scheme est
+   fixé à "light only". Ces déclarations explicites (au lieu de compter
+   uniquement sur les classes Tailwind) donnent au navigateur moins de
+   prise pour appliquer sa propre palette sombre. */
+html,
 body {
-  @apply bg-white text-noir antialiased;
+  background-color: #ffffff !important;
+  color: #0a0a0a;
+}
+
+body {
+  @apply antialiased;
 }
