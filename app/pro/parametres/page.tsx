@@ -9,6 +9,7 @@ import {
   CreditCard,
   ChevronRight,
   Eye,
+  Clock,
 } from "lucide-react";
 import { getCurrentDbUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,12 @@ const sections = [
     icon: Store,
     title: "Informations du salon",
     description: "Nom, description, adresse, téléphone, photos, logo, zones de déplacement.",
+  },
+  {
+    href: "/pro/horaires",
+    icon: Clock,
+    title: "Horaires d'ouverture",
+    description: "Jour par jour, avec les jours fermés.",
   },
   {
     href: "/pro/services",
