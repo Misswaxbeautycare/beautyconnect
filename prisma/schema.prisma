@@ -308,6 +308,11 @@ model BookingServiceItem {
   @@map("booking_service_items")
 }
 
+enum PayoutStatus {
+  PENDING
+  PAID
+}
+
 model Payment {
   id                    String        @id @default(uuid())
   bookingId             String        @unique
@@ -317,6 +322,11 @@ model Payment {
   amount                Decimal       @db.Decimal(10, 2)
   commissionAmount      Decimal       @db.Decimal(10, 2)
   stripePaymentIntentId String?       @unique
+  // Suivi du reversement manuel au salon (tant que Stripe Connect n'est
+  // pas en place, l'argent arrive sur le compte de la plateforme et doit
+  // être reversé "à la main" — ce champ permet de cocher que c'est fait).
+  payoutStatus          PayoutStatus  @default(PENDING)
+  paidOutAt             DateTime?
   createdAt             DateTime      @default(now())
 
   @@map("payments")

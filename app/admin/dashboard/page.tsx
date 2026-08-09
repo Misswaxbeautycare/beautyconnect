@@ -56,6 +56,12 @@ export default async function AdminDashboard() {
       >
         Gérer les formules d&apos;abonnement des salons
       </Link>
+      <Link
+        href="/admin/versements"
+        className="mt-4 ml-3 inline-block rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
+      >
+        Versements à effectuer aux salons
+      </Link>
     </div>
   );
 }
