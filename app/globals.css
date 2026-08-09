@@ -22,3 +22,15 @@ body {
 body {
   @apply antialiased;
 }
+
+/* Les champs de formulaire (date, texte, select...) sont les éléments les
+   plus souvent cassés par le "thème sombre pour les sites" de Samsung
+   Internet / Chrome : texte blanc sur fond blanc, sélecteur de date
+   illisible, etc. On fixe leurs couleurs explicitement pour éviter ça. */
+input,
+select,
+textarea {
+  background-color: #ffffff;
+  color: #0a0a0a;
+  color-scheme: light;
+}

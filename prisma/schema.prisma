@@ -94,6 +94,7 @@ model User {
   favorites     Favorite[]
   orders        Order[]
   notifications Notification[]
+  salonVisits   SalonVisit[]
 
   @@map("users")
 }
@@ -146,6 +147,7 @@ model Salon {
   closedDays     ClosedDay[]
   teamMembers    TeamMember[]
   bookings       Booking[]
+  visits         SalonVisit[]
   reviews        Review[]
   favorites      Favorite[]
   products       Product[]
@@ -203,6 +205,22 @@ model TeamMember {
   createdAt DateTime @default(now())
 
   @@map("team_members")
+}
+
+// Journal léger des visites de fiche salon — on n'identifie que les
+// personnes connectées (clientId), jamais les visiteurs anonymes
+// (pas d'IP, pas de cookie de suivi), pour rester raisonnable côté
+// vie privée tout en donnant une vraie idée de la fréquentation.
+model SalonVisit {
+  id        String   @id @default(uuid())
+  salonId   String
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  clientId  String?
+  client    User?    @relation(fields: [clientId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([salonId, createdAt])
+  @@map("salon_visits")
 }
 
 // ------------------------------------------------------------

@@ -30,6 +30,12 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
 
   if (!salon) notFound();
 
+  // Journal de visite — en tâche de fond, ne doit jamais ralentir ni faire
+  // échouer l'affichage de la page si ça tombe en erreur.
+  prisma.salonVisit
+    .create({ data: { salonId: salon.id, clientId: dbUser?.id } })
+    .catch((err: unknown) => console.error("[salon visit log]", err));
+
   const isFavorited = dbUser
     ? Boolean(
         await prisma.favorite.findUnique({

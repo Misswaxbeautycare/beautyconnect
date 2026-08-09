@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   CreditCard,
   ChevronRight,
+  Eye,
 } from "lucide-react";
 import { getCurrentDbUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -43,6 +44,12 @@ const sections = [
     icon: Star,
     title: "Avis clients",
     description: "Répondre publiquement aux avis laissés sur votre fiche.",
+  },
+  {
+    href: "/pro/visites",
+    icon: Eye,
+    title: "Visites de ma fiche",
+    description: "Qui a consulté votre fiche salon, et quand.",
   },
   {
     href: "/pro/abonnement",
