@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
@@ -8,6 +7,7 @@ import { RequestReviewButton } from "@/components/pro/RequestReviewButton";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
+import { getCurrentDbUser } from "@/lib/auth";
 
 function paymentBadge(payment: { type: string; status: string; amount: unknown } | null) {
   if (!payment) {
@@ -27,12 +27,12 @@ function paymentBadge(payment: { type: string; status: string; amount: unknown }
 }
 
 export default async function AgendaPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const dbUser = await prisma.user.findUnique({ where: { authId: user.id } });
-  if (!dbUser || (dbUser.role !== "PROFESSIONAL" && dbUser.role !== "ADMIN")) redirect("/login");
+  // Comme pour les autres pages pro (équipe, prestations, horaires...), on
+  // vérifie la propriété réelle du salon plutôt qu'un champ "role" qui peut
+  // ne pas avoir été mis à jour selon le parcours suivi par la personne —
+  // ça évitait un renvoi silencieux vers /login pour certains comptes.
+  const dbUser = await getCurrentDbUser();
+  if (!dbUser) redirect("/login");
 
   const salon = await prisma.salon.findUnique({
     where: { ownerId: dbUser.id },

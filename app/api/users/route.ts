@@ -3,8 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
 // Utilisé après connexion pour savoir vers quel tableau de bord rediriger
-// (professionnel vs client), puisque le rôle est stocké dans la table
-// applicative "users" et non dans la session Supabase Auth elle-même.
+// (professionnel vs client). On se base sur la possession réelle d'un
+// salon plutôt que sur le seul champ "role" — certains comptes ont pu
+// être créés avant que ce champ ne soit mis à jour de façon fiable.
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -12,10 +13,12 @@ export async function GET() {
 
   const dbUser = await prisma.user.findUnique({
     where: { authId: user.id },
-    select: { role: true },
+    select: { role: true, salon: { select: { id: true } } },
   });
 
-  return NextResponse.json({ role: dbUser?.role ?? null });
+  const isPro = dbUser?.role === "PROFESSIONAL" || dbUser?.role === "ADMIN" || Boolean(dbUser?.salon);
+
+  return NextResponse.json({ role: dbUser?.role ?? null, isPro });
 }
 
 // Crée (ou met à jour) le profil applicatif (table users) juste après l'inscription Supabase Auth.
