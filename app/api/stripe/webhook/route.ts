@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
             bookingId: booking.id,
             type: "PAYMENT_RECEIVED",
             title: "Nouveau rendez-vous payé",
-            message: `${booking.service.name} réservé et payé en ligne le ${booking.date.toLocaleDateString("fr-BE")} à ${booking.date.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}.`,
+            message: `${booking.service.name} réservé et payé en ligne le ${booking.date.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })} à ${booking.date.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })}.`,
           },
         });
         // TODO : déclencher l'envoi d'email (Resend) + programmer les rappels 24h/2h

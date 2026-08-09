@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         bookingId: booking.id,
         type: "BOOKING_CONFIRMATION",
         title: "Nouveau rendez-vous",
-        message: `${client.firstName} a réservé ${service.name} le ${startDate.toLocaleDateString("fr-BE")} à ${startDate.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}.`,
+        message: `${client.firstName} a réservé ${service.name} le ${startDate.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })} à ${startDate.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })}.`,
       },
     });
 

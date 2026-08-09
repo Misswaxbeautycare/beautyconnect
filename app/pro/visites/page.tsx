@@ -70,6 +70,7 @@ export default async function VisitesPage() {
                   month: "short",
                   hour: "2-digit",
                   minute: "2-digit",
+                  timeZone: "Europe/Brussels",
                 })}
               </span>
             </div>

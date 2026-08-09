@@ -80,6 +80,7 @@ export default async function AgendaPage() {
       weekday: "long",
       day: "numeric",
       month: "long",
+      timeZone: "Europe/Brussels",
     });
     if (!acc[jour]) acc[jour] = [];
     acc[jour].push(b);

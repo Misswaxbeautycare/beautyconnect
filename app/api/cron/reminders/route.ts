@@ -33,6 +33,7 @@ async function envoyerRappel(
     month: "long",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Europe/Brussels",
   });
 
   await getResend().emails.send({
