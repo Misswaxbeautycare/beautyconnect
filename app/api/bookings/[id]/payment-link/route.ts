@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!isStripeConfigured()) {
+    return NextResponse.json(
+      { error: "Le paiement en ligne n'est pas encore configuré (clé Stripe manquante côté serveur)." },
+      { status: 503 }
+    );
+  }
+
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

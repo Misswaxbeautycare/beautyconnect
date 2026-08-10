@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { X, ShoppingBasket, Plus, Check } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
-type Salon = { id: string; name: string; city: string };
+type Salon = { id: string; name: string; city: string; onlinePayment: boolean };
 type Service = { id: string; name: string; price: number; durationMin: number; depositPct: number };
 
 interface QuickBookingModalProps {
@@ -48,8 +48,12 @@ export function QuickBookingModal({
   const [showCart, setShowCart] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
+  const [paymentType, setPaymentType] = useState<"ON_SITE" | "DEPOSIT" | "FULL">("ON_SITE");
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
+  const selectedSalon = salons.find((s) => s.id === salonId);
+  const salonAllowsOnlinePayment = Boolean(selectedSalon?.onlinePayment);
+  const depositPct = selectedServices[0]?.depositPct ?? 30;
 
   async function checkEmail() {
     if (!email.trim() || !email.includes("@")) {
@@ -179,7 +183,7 @@ export function QuickBookingModal({
           serviceId: primaryServiceId,
           additionalServiceIds,
           date: new Date(`${date}T${time}`).toISOString(),
-          paymentType: "ON_SITE",
+          paymentType,
         }),
       });
       const data = await res.json();
@@ -191,8 +195,12 @@ export function QuickBookingModal({
       }
 
       onClose();
-      router.push("/client/dashboard?booking=success");
-      router.refresh();
+      if (data.checkoutUrl) {
+        router.push(data.checkoutUrl);
+      } else {
+        router.push("/client/dashboard?booking=success");
+        router.refresh();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue.");
       setSubmitting(false);
@@ -418,14 +426,50 @@ export function QuickBookingModal({
             </>
           )}
 
+          {salonId && serviceIds.length > 0 && date && time && (
+            <div>
+              <label className="text-sm text-noir/70">Comment souhaitez-vous régler ?</label>
+              <div className="mt-2 flex flex-col gap-2">
+                {salonAllowsOnlinePayment && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentType("DEPOSIT")}
+                    className={`rounded-lg border px-4 py-2.5 text-left text-sm transition-colors ${
+                      paymentType === "DEPOSIT" ? "border-or bg-beige" : "border-beige-dark text-noir/70 hover:border-or"
+                    }`}
+                  >
+                    Acompte en ligne ({depositPct}%)
+                  </button>
+                )}
+                {salonAllowsOnlinePayment && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentType("FULL")}
+                    className={`rounded-lg border px-4 py-2.5 text-left text-sm transition-colors ${
+                      paymentType === "FULL" ? "border-or bg-beige" : "border-beige-dark text-noir/70 hover:border-or"
+                    }`}
+                  >
+                    Payer en ligne (totalité)
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPaymentType("ON_SITE")}
+                  className={`rounded-lg border px-4 py-2.5 text-left text-sm transition-colors ${
+                    paymentType === "ON_SITE" ? "border-or bg-beige" : "border-beige-dark text-noir/70 hover:border-or"
+                  }`}
+                >
+                  Payer sur place
+                </button>
+              </div>
+            </div>
+          )}
+
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <Button type="submit" disabled={submitting || (!isLoggedIn && emailExists)} className="w-full">
             {submitting ? "Réservation..." : "Réserver ce créneau"}
           </Button>
-          <p className="text-center text-xs text-noir/40">
-            Réservation confirmée, réglée sur place. Pour payer en ligne, passez par la page du salon.
-          </p>
         </form>
       </div>
     </div>,
