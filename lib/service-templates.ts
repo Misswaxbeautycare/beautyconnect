@@ -16,6 +16,8 @@ export const serviceTemplates: Record<string, ServiceTemplate[]> = {
     { name: "Coloration", durationMin: 90, price: 60 },
     { name: "Mèches / balayage", durationMin: 120, price: 80 },
     { name: "Lissage brésilien", durationMin: 150, price: 120 },
+    { name: "Coiffure mariée", durationMin: 90, price: 130 },
+    { name: "Coiffure cérémonie / invitée", durationMin: 45, price: 60 },
   ],
   barbier: [
     { name: "Taille de barbe", durationMin: 20, price: 15 },
