@@ -27,7 +27,7 @@ export async function GET() {
   const services = await prisma.service.findMany({
     where: { salonId: result.salon.id },
     include: { category: true },
-    orderBy: { name: "asc" },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
   });
 
   return NextResponse.json({ services });
@@ -56,8 +56,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const count = await prisma.service.count({ where: { salonId: result.salon.id } });
+
   const service = await prisma.service.create({
-    data: { ...parsed.data, salonId: result.salon.id },
+    data: { ...parsed.data, salonId: result.salon.id, order: count },
   });
 
   return NextResponse.json({ service });

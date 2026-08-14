@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     select: { name: true },
   });
   const existingNames = new Set(existing.map((s: { name: string }) => s.name.toLowerCase()));
+  let nextOrder = existing.length;
 
   const toCreate = parsed.data.items
     .filter((item) => !existingNames.has(item.name.toLowerCase()))
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
         price: item.price,
         description: item.description,
         depositPct: 30,
+        order: nextOrder++,
       };
     })
     .filter((v): v is NonNullable<typeof v> => v !== null);

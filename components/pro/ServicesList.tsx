@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/utils";
-import { Clock, Trash2, Pencil, X } from "lucide-react";
+import { Clock, Trash2, Pencil, X, ArrowUp, ArrowDown } from "lucide-react";
 
 type ServiceMode = "SALON" | "DOMICILE" | "DEPLACEMENT";
 
@@ -18,6 +18,7 @@ type Service = {
   depositPct: number;
   modes: ServiceMode[];
   isActive: boolean;
+  order: number;
   category: { name: string };
 };
 
@@ -40,6 +41,33 @@ export function ServicesList({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<{ name: string; description: string; price: string; durationMin: string; depositPct: string; modes: ServiceMode[] } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [reorderLoading, setReorderLoading] = useState<string | null>(null);
+
+  async function swapOrder(serviceIdA: string, serviceIdB: string) {
+    setReorderLoading(serviceIdA);
+    // Mise à jour optimiste pour un retour immédiat à l'écran
+    setItems((prev) => {
+      const a = prev.find((s) => s.id === serviceIdA);
+      const b = prev.find((s) => s.id === serviceIdB);
+      if (!a || !b) return prev;
+      return prev.map((s) => {
+        if (s.id === serviceIdA) return { ...s, order: b.order };
+        if (s.id === serviceIdB) return { ...s, order: a.order };
+        return s;
+      });
+    });
+
+    const res = await fetch("/api/services/reorder", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ serviceIdA, serviceIdB }),
+    });
+    setReorderLoading(null);
+    if (!res.ok) {
+      setError("Impossible de réordonner les prestations.");
+      router.refresh();
+    }
+  }
 
   async function toggleActive(id: string, isActive: boolean) {
     setError(null);
@@ -151,7 +179,7 @@ export function ServicesList({
         <div key={categorie}>
           <h2 className="mb-3 font-display text-lg text-noir">{categorie}</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {servicesDeCat.map((s) => {
+            {servicesDeCat.map((s, index) => {
               const isEditing = editingId === s.id;
 
               if (isEditing && draft) {
@@ -265,6 +293,27 @@ export function ServicesList({
                     s.isActive ? "" : "opacity-50"
                   }`}
                 >
+                  <div className="absolute left-3 top-3 flex flex-col gap-1">
+                    <button
+                      type="button"
+                      onClick={() => index > 0 && swapOrder(s.id, servicesDeCat[index - 1].id)}
+                      disabled={index === 0 || reorderLoading !== null}
+                      aria-label="Monter"
+                      className="flex h-5 w-5 items-center justify-center text-noir/25 hover:text-or-dark disabled:opacity-20"
+                    >
+                      <ArrowUp size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => index < servicesDeCat.length - 1 && swapOrder(s.id, servicesDeCat[index + 1].id)}
+                      disabled={index === servicesDeCat.length - 1 || reorderLoading !== null}
+                      aria-label="Descendre"
+                      className="flex h-5 w-5 items-center justify-center text-noir/25 hover:text-or-dark disabled:opacity-20"
+                    >
+                      <ArrowDown size={13} />
+                    </button>
+                  </div>
+
                   <div className="absolute right-3 top-3 flex items-center gap-2">
                     <button
                       type="button"
@@ -285,11 +334,11 @@ export function ServicesList({
                   </div>
 
                   <div>
-                    <p className="pr-12 font-medium text-noir">{s.name}</p>
+                    <p className="pl-6 pr-12 font-medium text-noir">{s.name}</p>
                     {s.description && (
-                      <p className="mt-1 line-clamp-2 text-xs text-noir/50">{s.description}</p>
+                      <p className="mt-1 pl-6 line-clamp-2 text-xs text-noir/50">{s.description}</p>
                     )}
-                    <p className="mt-1 flex items-center gap-1 text-xs text-noir/50">
+                    <p className="mt-1 flex items-center gap-1 pl-6 text-xs text-noir/50">
                       <Clock size={12} /> {s.durationMin} min
                     </p>
                   </div>

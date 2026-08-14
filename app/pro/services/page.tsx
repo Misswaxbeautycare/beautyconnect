@@ -20,7 +20,7 @@ export default async function PrestationsPage() {
   const servicesRaw = await prisma.service.findMany({
     where: { salonId: salon.id },
     include: { category: true },
-    orderBy: { name: "asc" },
+    orderBy: [{ order: "asc" }, { name: "asc" }],
   });
 
   const services = servicesRaw.map((s: (typeof servicesRaw)[number]) => ({

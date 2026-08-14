@@ -263,6 +263,7 @@ model Service {
   depositPct  Int      @default(30) // % d'acompte si applicable
   modes       ServiceMode[] @default([SALON])
   isActive    Boolean  @default(true)
+  order       Int      @default(0)
 
   createdAt   DateTime @default(now())
 

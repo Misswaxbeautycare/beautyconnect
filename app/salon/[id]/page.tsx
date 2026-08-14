@@ -12,7 +12,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
     prisma.salon.findUnique({
       where: { id },
       include: {
-        services: { where: { isActive: true }, include: { category: true } },
+        services: { where: { isActive: true }, include: { category: true }, orderBy: [{ order: "asc" }, { name: "asc" }] },
         categories: { include: { category: true } },
         photos: { orderBy: { order: "asc" } },
         openingHours: true,
