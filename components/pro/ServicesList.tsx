@@ -42,6 +42,30 @@ export function ServicesList({
   const [draft, setDraft] = useState<{ name: string; description: string; price: string; durationMin: string; depositPct: string; modes: ServiceMode[] } | null>(null);
   const [saving, setSaving] = useState(false);
   const [reorderLoading, setReorderLoading] = useState<string | null>(null);
+  const [autoFilling, setAutoFilling] = useState(false);
+  const [autoFillMessage, setAutoFillMessage] = useState<string | null>(null);
+
+  async function autoFillDescriptions() {
+    setAutoFilling(true);
+    setAutoFillMessage(null);
+    const res = await fetch("/api/services/auto-descriptions", { method: "POST" });
+    setAutoFilling(false);
+    if (!res.ok) {
+      setError("Impossible de compléter les descriptions.");
+      return;
+    }
+    const data = await res.json();
+    setAutoFillMessage(
+      data.filled > 0
+        ? `${data.filled} description${data.filled > 1 ? "s" : ""} complétée${data.filled > 1 ? "s" : ""}.${
+            data.remaining > 0
+              ? ` ${data.remaining} prestation${data.remaining > 1 ? "s" : ""} au nom personnalisé restent à compléter à la main.`
+              : ""
+          }`
+        : "Aucune correspondance trouvée avec le catalogue — complétez à la main avec le crayon."
+    );
+    router.refresh();
+  }
 
   async function swapOrder(serviceIdA: string, serviceIdB: string) {
     setReorderLoading(serviceIdA);
@@ -174,6 +198,24 @@ export function ServicesList({
 
   return (
     <div className="mt-8 space-y-10">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-beige-dark bg-beige/40 p-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-noir">Descriptions manquantes ?</p>
+          <p className="text-xs text-noir/50">
+            Complète automatiquement les prestations dont le nom correspond à notre catalogue.
+          </p>
+          {autoFillMessage && <p className="mt-1 text-xs text-or-dark">{autoFillMessage}</p>}
+        </div>
+        <button
+          type="button"
+          onClick={autoFillDescriptions}
+          disabled={autoFilling}
+          className="shrink-0 rounded-full bg-noir px-4 py-2 text-xs font-semibold text-white transition hover:bg-or hover:text-noir disabled:opacity-50"
+        >
+          {autoFilling ? "Complétion..." : "Compléter automatiquement"}
+        </button>
+      </div>
+
       {error && <p className="text-sm text-red-600">{error}</p>}
       {Object.entries(parCategorie).map(([categorie, servicesDeCat]) => (
         <div key={categorie}>
