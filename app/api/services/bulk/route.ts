@@ -11,6 +11,7 @@ const bulkSchema = z.object({
         categorySlug: z.string().min(1),
         durationMin: z.number().int().positive(),
         price: z.number().nonnegative(),
+        description: z.string().optional(),
       })
     )
     .min(1),
@@ -53,6 +54,7 @@ export async function POST(req: NextRequest) {
         name: item.name,
         durationMin: item.durationMin,
         price: item.price,
+        description: item.description,
         depositPct: 30,
       };
     })

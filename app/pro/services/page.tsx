@@ -26,6 +26,7 @@ export default async function PrestationsPage() {
   const services = servicesRaw.map((s: (typeof servicesRaw)[number]) => ({
     id: s.id,
     name: s.name,
+    description: s.description,
     price: Number(s.price),
     durationMin: s.durationMin,
     depositPct: s.depositPct,

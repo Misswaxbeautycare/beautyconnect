@@ -18,7 +18,7 @@ export function ServiceTemplatesPicker() {
     return `${categorySlug}::${name}`;
   }
 
-  async function addOne(categorySlug: string, item: { name: string; durationMin: number; price: number }) {
+  async function addOne(categorySlug: string, item: { name: string; durationMin: number; price: number; description?: string }) {
     const k = key(categorySlug, item.name);
     setError(null);
     setLoading(k);
@@ -28,7 +28,7 @@ export function ServiceTemplatesPicker() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: [{ categorySlug, name: item.name, durationMin: item.durationMin, price: item.price }],
+          items: [{ categorySlug, name: item.name, durationMin: item.durationMin, price: item.price, description: item.description }],
         }),
       });
       const data = await res.json();
@@ -95,11 +95,14 @@ export function ServiceTemplatesPicker() {
                     const isLoading = loading === k;
                     return (
                       <div key={item.name} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                        <div>
+                        <div className="min-w-0">
                           <p className="text-noir">{item.name}</p>
                           <p className="text-xs text-noir/50">
                             {item.durationMin} min · {formatPrice(item.price)}
                           </p>
+                          {item.description && (
+                            <p className="mt-0.5 truncate text-xs text-noir/40">{item.description}</p>
+                          )}
                         </div>
                         <button
                           type="button"

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -110,8 +111,10 @@ const MODE_LABELS: Record<"SALON" | "DOMICILE" | "DEPLACEMENT", string> = {
    ============================================================ */
 
 export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>("apropos");
   const [preselectServiceId, setPreselectServiceId] = useState<string | null>(null);
+  const [highlightedServiceId, setHighlightedServiceId] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<"SALON" | "DOMICILE" | "DEPLACEMENT">(() => {
     if (salon.services.some((s) => s.modes.includes("SALON"))) return "SALON";
     if (salon.services.some((s) => s.modes.includes("DOMICILE"))) return "DOMICILE";
@@ -180,6 +183,47 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
       await navigator.clipboard.writeText(shareData.url);
     }
   }
+
+  async function shareService(serviceId: string) {
+    const service = salon.services.find((s) => s.id === serviceId);
+    const url = `${window.location.origin}/salon/${salon.id}?service=${serviceId}`;
+    const shareData = { title: service ? `${service.name} — ${salon.name}` : salon.name, url };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        return;
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      setHighlightedServiceId(serviceId);
+      setTimeout(() => setHighlightedServiceId((v) => (v === serviceId ? null : v)), 2000);
+    }
+  }
+
+  // Lien direct vers une prestation précise (?service=xxx) — ouvre
+  // directement l'onglet Prestations, défile jusqu'à la fiche et la
+  // met en évidence quelques secondes.
+  useEffect(() => {
+    const serviceId = searchParams.get("service");
+    if (!serviceId || !salon.services.some((s) => s.id === serviceId)) return;
+
+    setActiveTab("prestations");
+    setHighlightedServiceId(serviceId);
+
+    const timeout = setTimeout(() => {
+      document.getElementById(`prestation-${serviceId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    const clearHighlight = setTimeout(() => setHighlightedServiceId(null), 4000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(clearHighlight);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { isOpenNow, todayLabel } = useMemo(() => computeOpenStatus(salon.openingHours), [salon.openingHours]);
 
@@ -351,23 +395,41 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                       .map((s) => (
                         <div
                           key={s.id}
-                          className="flex items-start justify-between gap-4 rounded-2xl border border-beige-dark p-4"
+                          id={`prestation-${s.id}`}
+                          className={cn(
+                            "scroll-mt-24 flex items-start justify-between gap-4 rounded-2xl border p-4 transition-colors",
+                            highlightedServiceId === s.id
+                              ? "border-or bg-beige"
+                              : "border-beige-dark"
+                          )}
                         >
                           <div className="min-w-0">
                             <p className="text-noir">{s.name}</p>
-                            <p className="mt-0.5 text-xs text-noir/50">
+                            {s.description && (
+                              <p className="mt-1 text-sm text-noir/60">{s.description}</p>
+                            )}
+                            <p className="mt-1.5 text-xs text-noir/50">
                               {s.durationMin >= 60
                                 ? `${Math.floor(s.durationMin / 60)}h${s.durationMin % 60 ? String(s.durationMin % 60).padStart(2, "0") : ""}`
                                 : `${s.durationMin} min`}
                             </p>
                             <p className="mt-2 text-sm font-semibold text-noir">{formatPrice(s.price)}</p>
                           </div>
-                          <button
-                            onClick={() => reserverService(s.id)}
-                            className="shrink-0 rounded-full bg-noir px-4 py-2 text-xs font-semibold text-white transition hover:bg-or hover:text-noir"
-                          >
-                            Réserver
-                          </button>
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <button
+                              onClick={() => reserverService(s.id)}
+                              className="rounded-full bg-noir px-4 py-2 text-xs font-semibold text-white transition hover:bg-or hover:text-noir"
+                            >
+                              Réserver
+                            </button>
+                            <button
+                              onClick={() => shareService(s.id)}
+                              aria-label={`Partager le lien vers ${s.name}`}
+                              className="text-noir/30 hover:text-or-dark"
+                            >
+                              <Share2 size={13} />
+                            </button>
+                          </div>
                         </div>
                       ))}
                   </div>

@@ -12,6 +12,7 @@ type ServiceMode = "SALON" | "DOMICILE" | "DEPLACEMENT";
 type Service = {
   id: string;
   name: string;
+  description: string | null;
   price: number;
   durationMin: number;
   depositPct: number;
@@ -37,7 +38,7 @@ export function ServicesList({
   const [items, setItems] = useState(services);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState<{ name: string; price: string; durationMin: string; depositPct: string; modes: ServiceMode[] } | null>(null);
+  const [draft, setDraft] = useState<{ name: string; description: string; price: string; durationMin: string; depositPct: string; modes: ServiceMode[] } | null>(null);
   const [saving, setSaving] = useState(false);
 
   async function toggleActive(id: string, isActive: boolean) {
@@ -69,6 +70,7 @@ export function ServicesList({
     setEditingId(s.id);
     setDraft({
       name: s.name,
+      description: s.description ?? "",
       price: String(s.price),
       durationMin: String(s.durationMin),
       depositPct: String(s.depositPct),
@@ -106,6 +108,7 @@ export function ServicesList({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: draft.name.trim(),
+        description: draft.description.trim() || undefined,
         price,
         durationMin,
         depositPct,
@@ -122,7 +125,9 @@ export function ServicesList({
 
     setItems((prev) =>
       prev.map((s) =>
-        s.id === id ? { ...s, name: draft.name.trim(), price, durationMin, depositPct, modes: draft.modes } : s
+        s.id === id
+          ? { ...s, name: draft.name.trim(), description: draft.description.trim() || null, price, durationMin, depositPct, modes: draft.modes }
+          : s
       )
     );
     setEditingId(null);
@@ -170,6 +175,18 @@ export function ServicesList({
                         <input
                           value={draft.name}
                           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                          className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="text-xs text-noir/60">
+                          Description <span className="font-normal text-noir/40">(donne envie de réserver)</span>
+                        </label>
+                        <textarea
+                          value={draft.description}
+                          onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                          rows={2}
+                          placeholder="Ex : Un chignon élégant qui tient toute la soirée."
                           className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or"
                         />
                       </div>
@@ -269,6 +286,9 @@ export function ServicesList({
 
                   <div>
                     <p className="pr-12 font-medium text-noir">{s.name}</p>
+                    {s.description && (
+                      <p className="mt-1 line-clamp-2 text-xs text-noir/50">{s.description}</p>
+                    )}
                     <p className="mt-1 flex items-center gap-1 text-xs text-noir/50">
                       <Clock size={12} /> {s.durationMin} min
                     </p>
