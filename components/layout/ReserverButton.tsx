@@ -11,10 +11,9 @@ export function ReserverButton({ className = "", isLoggedIn = false }: { classNa
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`relative inline-flex items-center justify-center rounded-full bg-or px-5 py-2.5 text-sm font-semibold text-noir shadow-lg shadow-or/30 transition hover:bg-or-dark hover:text-white ${className}`}
+        className={`inline-flex items-center justify-center rounded-full bg-or px-5 py-2.5 text-sm font-semibold text-noir shadow-lg shadow-or/30 transition hover:bg-or-dark hover:text-white active:scale-95 ${className}`}
       >
-        <span className="absolute inset-0 rounded-full bg-or animate-ping opacity-40" aria-hidden />
-        <span className="relative">Réserver</span>
+        Réserver
       </button>
       <QuickBookingModal open={open} onClose={() => setOpen(false)} isLoggedIn={isLoggedIn} />
     </>

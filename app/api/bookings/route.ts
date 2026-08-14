@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema } from "@/lib/validations";
 import { getEffectivePlan } from "@/lib/subscription-plans";
@@ -19,6 +19,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   const { salonId, serviceId, additionalServiceIds = [], date, notes, paymentType } = parsed.data;
+
+  // Vérification immédiate plutôt que d'attendre l'appel réel à Stripe —
+  // évite un délai avant d'afficher l'erreur quand la clé n'est pas encore
+  // configurée sur Vercel.
+  if (paymentType !== "ON_SITE" && !isStripeConfigured()) {
+    return NextResponse.json(
+      { error: "Le paiement en ligne n'est pas encore configuré (clé Stripe manquante côté serveur)." },
+      { status: 503 }
+    );
+  }
 
   const client = await prisma.user.findUnique({ where: { authId: user.id } });
   const service = await prisma.service.findUnique({ where: { id: serviceId } });
