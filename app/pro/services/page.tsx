@@ -32,6 +32,7 @@ export default async function PrestationsPage() {
     depositPct: s.depositPct,
     modes: s.modes,
     isActive: s.isActive,
+    order: s.order,
     category: s.category,
   }));
 
