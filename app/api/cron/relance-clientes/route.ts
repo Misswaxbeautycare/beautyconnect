@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 
     try {
       await getResend().emails.send({
-        from: "BeautyConnect <rappels@beautyconnect.be>",
+        from: "BeautyConnect <rappels@misswaxbeautycare.com>",
         to: client.email,
         subject: `Ça fait un moment, ${client.firstName} — on vous garde un créneau ?`,
         html: `

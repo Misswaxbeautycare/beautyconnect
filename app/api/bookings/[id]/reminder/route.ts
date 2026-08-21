@@ -42,7 +42,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
 
   try {
     await getResend().emails.send({
-      from: "BeautyConnect <rappels@beautyconnect.be>",
+      from: "BeautyConnect <rappels@misswaxbeautycare.com>",
       to: email,
       subject: `Rappel : votre rendez-vous chez ${booking.salon.name}`,
       html: `
