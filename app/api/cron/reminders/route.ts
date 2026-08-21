@@ -38,7 +38,7 @@ async function envoyerRappel(
   });
 
   await getResend().emails.send({
-    from: "BeautyConnect <rappels@misswaxbeautycare.com>",
+    from: "BeautyConnect <rappels@mail.misswaxbeautycare.com>",
     to: email,
     subject: `Rappel : votre rendez-vous ${delaiTexte}`,
     html: `

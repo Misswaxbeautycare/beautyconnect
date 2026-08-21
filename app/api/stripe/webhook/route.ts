@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
         const adminEmail = process.env.ADMIN_EMAIL ?? "contact@misswaxbeautycare.com";
         try {
           await getResend().emails.send({
-            from: "BeautyConnect <notifications@misswaxbeautycare.com>",
+            from: "BeautyConnect <notifications@mail.misswaxbeautycare.com>",
             to: adminEmail,
             subject: `Nouvel abonnement : ${salon?.name ?? salonId} — formule ${planName}`,
             html: `
