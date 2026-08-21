@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NotificationItem {
@@ -51,6 +51,12 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
     }
   }
 
+  async function dismiss(id: string, e: React.MouseEvent) {
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+  }
+
   return (
     <div className="relative">
       <button
@@ -60,7 +66,9 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-or-dark" />
+          <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-or-dark px-1 text-[10px] font-bold leading-none text-white">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
@@ -75,28 +83,37 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
               <p className="px-4 py-6 text-center text-sm text-noir/40">Aucune notification pour le moment.</p>
             )}
             {notifications.map((n) => (
-              <button
+              <div
                 key={n.id}
                 onClick={() => {
                   setOpen(false);
                   router.push(destinationHref);
                 }}
                 className={cn(
-                  "block w-full border-b border-beige-dark px-4 py-3 text-left last:border-b-0 hover:bg-beige",
+                  "group flex w-full cursor-pointer items-start gap-2 border-b border-beige-dark px-4 py-3 text-left last:border-b-0 hover:bg-beige",
                   !n.isRead && "bg-beige/60"
                 )}
               >
-                <p className="text-sm font-medium text-noir">{n.title}</p>
-                <p className="mt-0.5 text-xs text-noir/60">{n.message}</p>
-                <p className="mt-1 text-[11px] text-noir/30">
-                  {new Date(n.createdAt).toLocaleDateString("fr-BE", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </button>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-noir">{n.title}</p>
+                  <p className="mt-0.5 text-xs text-noir/60">{n.message}</p>
+                  <p className="mt-1 text-[11px] text-noir/30">
+                    {new Date(n.createdAt).toLocaleDateString("fr-BE", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={(e) => dismiss(n.id, e)}
+                  aria-label="Supprimer cette notification"
+                  className="shrink-0 rounded-full p-1 text-noir/30 hover:bg-white hover:text-red-600"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             ))}
           </div>
         </>

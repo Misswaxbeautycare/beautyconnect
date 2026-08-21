@@ -44,3 +44,20 @@ export async function PATCH(req: NextRequest) {
   await prisma.notification.update({ where: { id }, data: { isRead: true } });
   return NextResponse.json({ ok: true });
 }
+
+// Supprime une notification précise (?id=xxx) — le petit ✕ dans le tiroir.
+export async function DELETE(req: NextRequest) {
+  const dbUser = await getCurrentDbUser();
+  if (!dbUser) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
+
+  const notification = await prisma.notification.findUnique({ where: { id } });
+  if (!notification || notification.userId !== dbUser.id) {
+    return NextResponse.json({ error: "Notification introuvable" }, { status: 404 });
+  }
+
+  await prisma.notification.delete({ where: { id } });
+  return NextResponse.json({ ok: true });
+}
