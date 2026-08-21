@@ -2,13 +2,13 @@ import webpush from "web-push";
 import { prisma } from "@/lib/prisma";
 
 export function isPushConfigured() {
-  return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
+  return Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 }
 
 function configureWebPush() {
   webpush.setVapidDetails(
     process.env.VAPID_SUBJECT || "mailto:contact@misswaxbeautycare.com",
-    process.env.VAPID_PUBLIC_KEY!,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
     process.env.VAPID_PRIVATE_KEY!
   );
 }
