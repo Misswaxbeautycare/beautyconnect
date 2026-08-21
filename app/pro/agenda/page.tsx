@@ -199,6 +199,7 @@ export default async function AgendaPage() {
                         {badge.label}
                       </span>
                       {needsPaymentNudge && <PaymentLinkButton bookingId={b.id} />}
+                      {b.client && <RequestReviewButton />}
                     </div>
                   </Card>
                 );
