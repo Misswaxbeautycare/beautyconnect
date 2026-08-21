@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
 import { startOfDay, endOfDay, addDays } from "date-fns";
+import { sendPushToUser } from "@/lib/push";
 
 // Sécurise cette route : seul Vercel Cron (avec le bon secret) peut la déclencher
 function isAuthorized(req: NextRequest) {
@@ -58,6 +59,11 @@ async function envoyerRappel(
         title: "Rappel de rendez-vous",
         message: `Votre rendez-vous est ${delaiTexte}.`,
       },
+    });
+    sendPushToUser(booking.client.id, {
+      title: "Rappel de rendez-vous",
+      body: `Votre rendez-vous chez ${booking.salon.name} est ${delaiTexte}.`,
+      url: "/client/dashboard",
     });
   }
 }

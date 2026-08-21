@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResend, isResendConfigured } from "@/lib/resend";
 import { getCurrentDbUser } from "@/lib/auth";
+import { sendPushToUser } from "@/lib/push";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!isResendConfigured()) {
@@ -66,6 +67,11 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
         title: "Rappel de rendez-vous",
         message: `Rappel envoyé par ${booking.salon.name}.`,
       },
+    });
+    sendPushToUser(booking.clientId, {
+      title: "Rappel de rendez-vous",
+      body: `${booking.salon.name} vous rappelle votre rendez-vous du ${heureRdv}.`,
+      url: "/client/dashboard",
     });
   }
 

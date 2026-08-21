@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
 import { subDays } from "date-fns";
 import { getEffectivePlan } from "@/lib/subscription-plans";
+import { sendPushToUser } from "@/lib/push";
 
 // Sécurise cette route : seul Vercel Cron (avec le bon secret) peut la déclencher
 function isAuthorized(req: NextRequest) {
@@ -73,6 +74,11 @@ export async function GET(req: NextRequest) {
           title: `On vous garde un créneau chez ${salon.name} ?`,
           message: "Ça fait un moment — reprenez rendez-vous en quelques secondes.",
         },
+      });
+      sendPushToUser(client.id, {
+        title: `On vous garde un créneau chez ${salon.name} ?`,
+        body: "Ça fait un moment — reprenez rendez-vous en quelques secondes.",
+        url: `/salon/${salon.id}`,
       });
 
       envoyes += 1;

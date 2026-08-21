@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EnablePushButton } from "@/components/EnablePushButton";
 
 interface NotificationItem {
   id: string;
@@ -115,6 +116,7 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
                 </button>
               </div>
             ))}
+            <EnablePushButton />
           </div>
         </>
       )}

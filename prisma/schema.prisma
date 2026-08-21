@@ -95,6 +95,7 @@ model User {
   orders        Order[]
   notifications Notification[]
   salonVisits   SalonVisit[]
+  pushSubscriptions PushSubscription[]
 
   @@map("users")
 }
@@ -221,6 +222,21 @@ model SalonVisit {
 
   @@index([salonId, createdAt])
   @@map("salon_visits")
+}
+
+// Abonnement push d'un appareil précis — une personne peut en avoir
+// plusieurs (téléphone + ordinateur). Permet d'afficher une notification
+// même quand l'application n'est pas ouverte.
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@map("push_subscriptions")
 }
 
 // ------------------------------------------------------------

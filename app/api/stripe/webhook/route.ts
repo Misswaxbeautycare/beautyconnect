@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
 import { getPlan } from "@/lib/subscription-plans";
+import { sendPushToUser } from "@/lib/push";
 import Stripe from "stripe";
 
 // Webhook Stripe : confirme la réservation + le paiement quand le paiement réussit
@@ -83,6 +84,11 @@ export async function POST(req: NextRequest) {
             message: "Votre rendez-vous a bien été confirmé et payé. Merci de bien respecter votre horaire — prévenez le salon en cas d'empêchement.",
           },
         });
+        sendPushToUser(booking.clientId, {
+          title: "Réservation confirmée",
+          body: `${booking.service.name} — paiement reçu.`,
+          url: "/client/dashboard",
+        });
         await prisma.notification.create({
           data: {
             userId: booking.salon.ownerId,
@@ -91,6 +97,11 @@ export async function POST(req: NextRequest) {
             title: "Nouveau rendez-vous payé",
             message: `${booking.service.name} réservé et payé en ligne le ${booking.date.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })} à ${booking.date.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })}.`,
           },
+        });
+        sendPushToUser(booking.salon.ownerId, {
+          title: "Nouveau rendez-vous payé",
+          body: `${booking.service.name} — paiement reçu en ligne.`,
+          url: "/pro/agenda",
         });
         // TODO : déclencher l'envoi d'email (Resend) + programmer les rappels 24h/2h
         // via une tâche planifiée (Vercel Cron) qui scanne les bookings à venir.

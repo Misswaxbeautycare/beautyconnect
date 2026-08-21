@@ -4,6 +4,7 @@ import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { bookingSchema } from "@/lib/validations";
 import { getEffectivePlan } from "@/lib/subscription-plans";
+import { sendPushToUser } from "@/lib/push";
 
 // Crée une réservation. Si le salon a le paiement en ligne (formule Signature
 // ou Prestige), le client peut choisir acompte, paiement intégral, ou sur
@@ -107,6 +108,11 @@ export async function POST(req: NextRequest) {
         message: "Votre rendez-vous a bien été confirmé. Réglez directement sur place. Merci de bien respecter votre horaire — prévenez le salon en cas d'empêchement.",
       },
     });
+    sendPushToUser(client.id, {
+      title: "Réservation confirmée",
+      body: `${service.name} le ${startDate.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })}.`,
+      url: "/client/dashboard",
+    });
 
     // Le professionnel doit aussi être averti qu'un nouveau rendez-vous
     // vient d'être pris sur son agenda.
@@ -118,6 +124,11 @@ export async function POST(req: NextRequest) {
         title: "Nouveau rendez-vous",
         message: `${client.firstName} a réservé ${service.name} le ${startDate.toLocaleDateString("fr-BE", { timeZone: "Europe/Brussels" })} à ${startDate.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })}.`,
       },
+    });
+    sendPushToUser(salon.ownerId, {
+      title: "Nouveau rendez-vous",
+      body: `${client.firstName} a réservé ${service.name}.`,
+      url: "/pro/agenda",
     });
 
     return NextResponse.json({ bookingId: booking.id, confirmed: true });
