@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { CopySalonLink } from "@/components/pro/CopySalonLink";
+import { DashboardMenu } from "@/components/pro/DashboardMenu";
 import { ShareAppButton } from "@/components/ShareAppButton";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { formatPrice, formatDate } from "@/lib/utils";
@@ -80,63 +81,14 @@ export default async function ProDashboard() {
           <h1 className="font-display text-3xl text-noir">{salon.name}</h1>
           <p className="mt-1 text-noir/60">Tableau de bord professionnel</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/pro/salon/modifier"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Modifier mon salon
-          </Link>
-          <Link
-            href="/pro/services"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Mes prestations
-          </Link>
-          <Link
-            href="/pro/equipe"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Mon équipe
-          </Link>
-          <Link
-            href="/pro/avis"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Mes avis
-          </Link>
-          <Link
-            href="/pro/produits"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Ma boutique
-          </Link>
-          <Link
-            href="/pro/abonnement"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Mon abonnement
-          </Link>
-          <Link
-            href="/pro/parametres"
-            className="rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
-          >
-            Paramètres
-          </Link>
+        <div className="flex items-center gap-3">
           <Link
             href="/pro/agenda"
             className="rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
           >
-            Voir l&apos;agenda complet
+            Voir l&apos;agenda
           </Link>
-          {dbUser.role === "ADMIN" && (
-            <Link
-              href="/admin/dashboard"
-              className="rounded-full bg-or px-6 py-3 text-sm font-semibold text-noir hover:bg-or-dark hover:text-white transition"
-            >
-              Administration
-            </Link>
-          )}
+          <DashboardMenu isAdmin={dbUser.role === "ADMIN"} />
         </div>
       </div>
 
