@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
 import { RequestReviewButton } from "@/components/pro/RequestReviewButton";
+import { SendReminderButton } from "@/components/pro/SendReminderButton";
 import { formatDate, formatPrice } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
@@ -199,6 +200,7 @@ export default async function AgendaPage() {
                         {badge.label}
                       </span>
                       {needsPaymentNudge && <PaymentLinkButton bookingId={b.id} />}
+                      {email && <SendReminderButton bookingId={b.id} />}
                       {b.client && <RequestReviewButton />}
                     </div>
                   </Card>

@@ -8,3 +8,7 @@ export function getResend() {
   }
   return resendClient;
 }
+
+export function isResendConfigured() {
+  return Boolean(process.env.RESEND_API_KEY);
+}
