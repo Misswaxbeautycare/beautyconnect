@@ -5,27 +5,11 @@ import { Card } from "@/components/ui/Card";
 import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
 import { RequestReviewButton } from "@/components/pro/RequestReviewButton";
 import { SendReminderButton } from "@/components/pro/SendReminderButton";
-import { formatDate, formatPrice } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { startOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
 import { getCurrentDbUser } from "@/lib/auth";
-
-function paymentBadge(payment: { type: string; status: string; amount: unknown } | null) {
-  if (!payment) {
-    return { label: "Aucun paiement", className: "bg-neutral-100 text-neutral-500" };
-  }
-  if (payment.status === "PAID") {
-    const label = payment.type === "DEPOSIT" ? "Acompte payé" : "Payé intégralement";
-    return { label: `${label} · ${formatPrice(Number(payment.amount))}`, className: "bg-green-50 text-green-700" };
-  }
-  if (payment.status === "PENDING") {
-    return { label: "Paiement en attente", className: "bg-amber-50 text-amber-700" };
-  }
-  if (payment.status === "REFUNDED") {
-    return { label: "Remboursé", className: "bg-neutral-100 text-neutral-500" };
-  }
-  return { label: "Paiement échoué", className: "bg-red-50 text-red-700" };
-}
+import { paymentBadge } from "@/lib/payment-badge";
 
 export default async function AgendaPage() {
   // Comme pour les autres pages pro (équipe, prestations, horaires...), on

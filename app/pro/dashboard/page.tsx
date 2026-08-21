@@ -9,6 +9,9 @@ import { ShareAppButton } from "@/components/ShareAppButton";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { startOfMonth, startOfDay, endOfDay } from "date-fns";
+import { Phone, Mail } from "lucide-react";
+import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
+import { paymentBadge } from "@/lib/payment-badge";
 
 export default async function ProDashboard() {
   const supabase = await createClient();
@@ -39,7 +42,7 @@ export default async function ProDashboard() {
     include: {
       bookings: {
         where: { date: { gte: startOfDay(new Date()), lte: endOfDay(new Date()) } },
-        include: { client: true, service: true },
+        include: { client: true, service: true, payment: true },
       },
     },
   });
@@ -123,13 +126,36 @@ export default async function ProDashboard() {
           const nomClient = b.client
             ? `${b.client.firstName} ${b.client.lastName}`
             : b.guestName ?? "Client sans nom";
+          const email = b.client?.email ?? b.guestEmail ?? null;
+          const phone = b.client?.phone ?? b.guestPhone ?? null;
+          const badge = paymentBadge(b.payment);
+          const needsPaymentNudge = !b.payment || b.payment.status !== "PAID";
           return (
-            <Card key={b.id} className="flex items-center justify-between p-5">
-              <div>
+            <Card key={b.id} className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="font-medium text-noir">{nomClient}</p>
                 <p className="text-sm text-noir/60">{b.service.name} — {formatDate(b.date)}</p>
+                <div className="mt-1.5 flex flex-wrap gap-3">
+                  {phone && (
+                    <a href={`tel:${phone}`} className="flex items-center gap-1 text-xs text-noir/60 hover:text-or-dark">
+                      <Phone size={12} /> {phone}
+                    </a>
+                  )}
+                  {email && (
+                    <a href={`mailto:${email}`} className="flex items-center gap-1 text-xs text-noir/60 hover:text-or-dark">
+                      <Mail size={12} /> {email}
+                    </a>
+                  )}
+                  {!phone && !email && (
+                    <span className="text-xs text-noir/30">Aucune coordonnée enregistrée</span>
+                  )}
+                </div>
               </div>
-              <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
+              <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
+                <span className="rounded-full bg-beige px-3 py-1 text-xs text-noir/70">{b.status}</span>
+                <span className={`rounded-full px-3 py-1 text-xs ${badge.className}`}>{badge.label}</span>
+                {needsPaymentNudge && <PaymentLinkButton bookingId={b.id} />}
+              </div>
             </Card>
           );
         })}

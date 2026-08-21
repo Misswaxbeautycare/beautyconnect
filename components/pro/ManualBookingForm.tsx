@@ -135,7 +135,7 @@ export function ManualBookingForm({ services }: { services: Service[] }) {
         <label className="text-sm text-noir/70">Paiement</label>
         <div className="mt-2 flex flex-wrap gap-2">
           {[
-            { value: "NONE", label: "Aucun paiement" },
+            { value: "NONE", label: "Paiement sur place" },
             { value: "DEPOSIT_PAID", label: "Acompte payé" },
             { value: "FULL_PAID", label: "Payé intégralement" },
           ].map((opt) => (
