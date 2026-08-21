@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const maintenant = new Date();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://beautyconnect-nine.vercel.app";
   const fenetreDebut = subDays(maintenant, 37);
   const fenetreFin = subDays(maintenant, 30);
 
@@ -62,7 +63,7 @@ export async function GET(req: NextRequest) {
           <p>Bonjour ${client.firstName},</p>
           <p>Cela fait quelques semaines que vous n'êtes pas passée chez <strong>${salon.name}</strong>.</p>
           <p>Envie de reprendre rendez-vous ? Vos disponibilités préférées vous attendent.</p>
-          <p><a href="https://beautyconnect-nine.vercel.app/salon/${salon.id}">Réserver un nouveau rendez-vous</a></p>
+          <p><a href="${appUrl}/salon/${salon.id}">Réserver un nouveau rendez-vous</a></p>
           <p style="color:#999;font-size:12px;">BeautyConnect — Trouvez. Réservez. Rayonnez.</p>
         `,
       });
