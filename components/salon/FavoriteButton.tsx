@@ -25,6 +25,11 @@ export function FavoriteButton({
     if (loading) return;
     setLoading(true);
 
+    // Optimiste : le cœur réagit immédiatement, avant même la réponse du
+    // serveur — on annule seulement si la requête échoue vraiment.
+    const previous = favorited;
+    setFavorited(!previous);
+
     const res = await fetch("/api/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,8 +37,15 @@ export function FavoriteButton({
     });
 
     if (res.status === 401) {
+      setFavorited(previous);
       setLoading(false);
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (!res.ok) {
+      setFavorited(previous);
+      setLoading(false);
       return;
     }
 
