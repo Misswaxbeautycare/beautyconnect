@@ -84,7 +84,7 @@ export default async function ProDashboard() {
         <div className="flex items-center gap-3">
           <Link
             href="/pro/agenda"
-            className="rounded-full bg-noir text-white px-6 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
+            className="rounded-full bg-or text-noir px-6 py-3 text-sm font-semibold hover:bg-or-dark hover:text-white transition"
           >
             Voir l&apos;agenda
           </Link>

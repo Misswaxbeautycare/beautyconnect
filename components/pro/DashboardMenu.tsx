@@ -60,23 +60,17 @@ export function DashboardMenu({ isAdmin }: { isAdmin: boolean }) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-noir/30"
-            onClick={() => setOpen(false)}
-            aria-hidden
-          />
-          <div className="absolute inset-y-0 right-0 flex w-full max-w-sm flex-col overflow-y-auto bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <p className="font-display text-lg text-noir">Gestion du salon</p>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Fermer"
-                className="flex h-9 w-9 items-center justify-center rounded-full text-noir/60 hover:bg-beige"
-              >
-                <X size={18} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-white p-6">
+          <div className="flex items-center justify-between">
+            <p className="font-display text-lg text-noir">Gestion du salon</p>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Fermer"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-noir/60 hover:bg-beige"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
             <div className="mt-6 flex flex-col gap-6">
               {sections.map((section) => (
@@ -111,7 +105,6 @@ export function DashboardMenu({ isAdmin }: { isAdmin: boolean }) {
                 </Link>
               )}
             </div>
-          </div>
         </div>
       )}
     </>

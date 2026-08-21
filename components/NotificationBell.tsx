@@ -74,14 +74,21 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
       </button>
 
       {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
-          <div className="fixed inset-x-4 top-16 z-50 mx-auto max-h-96 w-auto max-w-sm overflow-y-auto rounded-2xl border border-beige-dark bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
-            <div className="flex items-center justify-between border-b border-beige-dark px-4 py-3">
-              <p className="text-sm font-semibold text-noir">Notifications</p>
-            </div>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
+          <div className="flex items-center justify-between border-b border-beige-dark px-5 py-4">
+            <p className="font-display text-lg text-noir">Notifications</p>
+            <button
+              onClick={() => setOpen(false)}
+              aria-label="Fermer"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-noir/60 hover:bg-beige"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
             {loaded && notifications.length === 0 && (
-              <p className="px-4 py-6 text-center text-sm text-noir/40">Aucune notification pour le moment.</p>
+              <p className="px-5 py-10 text-center text-sm text-noir/40">Aucune notification pour le moment.</p>
             )}
             {notifications.map((n) => (
               <div
@@ -91,7 +98,7 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
                   router.push(destinationHref);
                 }}
                 className={cn(
-                  "group flex w-full cursor-pointer items-start gap-2 border-b border-beige-dark px-4 py-3 text-left last:border-b-0 hover:bg-beige",
+                  "group flex w-full cursor-pointer items-start gap-2 border-b border-beige-dark px-5 py-4 text-left hover:bg-beige",
                   !n.isRead && "bg-beige/60"
                 )}
               >
@@ -116,9 +123,9 @@ export function NotificationBell({ destinationHref }: { destinationHref: string 
                 </button>
               </div>
             ))}
-            <EnablePushButton />
           </div>
-        </>
+          <EnablePushButton />
+        </div>
       )}
     </div>
   );
