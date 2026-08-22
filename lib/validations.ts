@@ -46,6 +46,7 @@ export const salonSchema = z.object({
   categoryIds: z.array(z.string().uuid()).min(1, "Choisissez au moins une catégorie"),
   domicileZone: z.string().optional(),
   deplacementZone: z.string().optional(),
+  deplacementFeePerKm: z.number().min(0).max(50).optional(),
 });
 export type SalonInput = z.infer<typeof salonSchema>;
 

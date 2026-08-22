@@ -72,6 +72,7 @@ export interface SalonProfileData {
   postalCode: string | null;
   domicileZone: string | null;
   deplacementZone: string | null;
+  deplacementFeePerKm: number | null;
   latitude: number | null;
   longitude: number | null;
   isApproved: boolean;
@@ -381,7 +382,13 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 </p>
               )}
               {activeMode === "DEPLACEMENT" && salon.deplacementZone && (
-                <p className="mb-4 text-sm text-noir/50">Le professionnel se déplace : {salon.deplacementZone}.</p>
+                <p className="mb-1 text-sm text-noir/50">Le professionnel se déplace : {salon.deplacementZone}.</p>
+              )}
+              {activeMode === "DEPLACEMENT" && salon.deplacementFeePerKm != null && (
+                <p className="mb-4 text-sm text-noir/50">
+                  Frais de déplacement : {formatPrice(salon.deplacementFeePerKm)} / km, ajoutés au prix de la
+                  prestation selon la distance.
+                </p>
               )}
               {categories.length === 0 && (
                 <p className="text-sm text-noir/40">Aucune prestation disponible pour le moment.</p>

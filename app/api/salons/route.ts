@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  const { name, description, address, city, postalCode, phone, categoryIds, domicileZone, deplacementZone } = parsed.data;
+  const { name, description, address, city, postalCode, phone, categoryIds, domicileZone, deplacementZone, deplacementFeePerKm } = parsed.data;
   const keepPhotoIds: string[] = Array.isArray(body.keepPhotoIds) ? body.keepPhotoIds : [];
   const newPhotoUrls: string[] = Array.isArray(body.newPhotoUrls) ? body.newPhotoUrls : [];
   const logoUrl: string | null = typeof body.logoUrl === "string" ? body.logoUrl : salon.logoUrl;
@@ -103,6 +103,7 @@ export async function PATCH(req: NextRequest) {
           phone,
           domicileZone,
           deplacementZone,
+          deplacementFeePerKm,
           logoUrl,
           coverUrl: firstRemainingUrl,
           categories: { create: categoryIds.map((categoryId) => ({ categoryId })) },

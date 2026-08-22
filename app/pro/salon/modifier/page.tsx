@@ -31,7 +31,11 @@ export default async function ModifierSalonPage() {
       <p className="mt-2 text-sm text-noir/60">
         Mettez à jour les informations et les photos de votre salon.
       </p>
-      <SalonEditForm categories={categories} salon={salon} maxPhotos={plan.maxPhotos} />
+      <SalonEditForm
+        categories={categories}
+        salon={{ ...salon, deplacementFeePerKm: salon.deplacementFeePerKm ? Number(salon.deplacementFeePerKm) : null }}
+        maxPhotos={plan.maxPhotos}
+      />
     </div>
   );
 }

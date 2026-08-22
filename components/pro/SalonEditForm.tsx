@@ -35,6 +35,7 @@ interface SalonEditFormProps {
     logoUrl: string | null;
     domicileZone: string | null;
     deplacementZone: string | null;
+    deplacementFeePerKm: number | null;
     photos: ExistingPhoto[];
     categories: { categoryId: string }[];
   };
@@ -68,6 +69,7 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       categoryIds: salon.categories.map((c) => c.categoryId),
       domicileZone: salon.domicileZone ?? "",
       deplacementZone: salon.deplacementZone ?? "",
+      deplacementFeePerKm: salon.deplacementFeePerKm ?? undefined,
     } as unknown as SalonInput,
   });
 
@@ -291,6 +293,26 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
         />
         <p className="mt-1 text-xs text-noir/40">
           Affiché si vous proposez des prestations où vous vous déplacez chez la cliente.
+        </p>
+      </div>
+
+      <div>
+        <label className="text-sm text-noir/70">Frais de déplacement par km (optionnel)</label>
+        <div className="mt-1 flex items-center gap-2">
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            max="50"
+            {...register("deplacementFeePerKm", { valueAsNumber: true })}
+            placeholder="Ex: 1.5"
+            className="w-32 rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+          />
+          <span className="text-sm text-noir/50">€ / km</span>
+        </div>
+        <p className="mt-1 text-xs text-noir/40">
+          Ajouté au prix de la prestation, en fonction de la distance parcourue pour se rendre
+          chez la cliente. Laissez vide si le déplacement est déjà inclus dans vos tarifs.
         </p>
       </div>
 

@@ -128,6 +128,10 @@ model Salon {
   // salon, qui elle n'est révélée qu'après réservation confirmée.
   domicileZone     String?
   deplacementZone  String?
+  // Tarif appliqué en plus du prix de la prestation, par kilomètre parcouru
+  // pour se rendre chez la cliente — uniquement pertinent pour les
+  // prestations en mode DEPLACEMENT.
+  deplacementFeePerKm Decimal? @db.Decimal(6, 2)
 
   stripeCustomerId     String?
   stripeSubscriptionId String?
