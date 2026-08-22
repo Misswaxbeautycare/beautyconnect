@@ -33,7 +33,7 @@ export default async function AbonnementPage() {
     <div className="mx-auto max-w-3xl px-6 py-12">
       <h1 className="font-display text-3xl text-noir">Mon abonnement</h1>
       <p className="mt-1 text-noir/60">
-        Accès à l&apos;espace professionnel Misswaxbeautycare.
+        Accès à l&apos;espace professionnel Beauty Connect.
       </p>
 
       <Card className="mt-6 p-6">

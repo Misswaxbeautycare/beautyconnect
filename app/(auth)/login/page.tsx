@@ -61,7 +61,7 @@ function LoginForm() {
 
       <div className="mt-8 rounded-3xl border border-beige-dark p-6 sm:p-8">
         <h2 className="font-display text-xl text-noir">Connexion</h2>
-        <p className="mt-1 text-sm text-noir/60">Ravi de vous revoir sur Misswaxbeautycare.</p>
+        <p className="mt-1 text-sm text-noir/60">Ravi de vous revoir sur Beauty Connect.</p>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div>
           <label className="text-sm text-noir/70">Email</label>

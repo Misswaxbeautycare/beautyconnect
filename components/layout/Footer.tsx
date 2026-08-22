@@ -10,7 +10,6 @@ export function Footer() {
             <Image src="/logo.png" alt="Beauty Connect" width={28} height={33} className="h-8 w-auto" />
             <p className="font-display text-lg text-white">Beauty Connect</p>
           </div>
-          <p className="mt-1 text-xs text-beige/40">Powered by Misswaxbeautycare</p>
           <p className="mt-2 text-sm text-beige/60">
             Trouvez. Réservez. Rayonnez.
           </p>

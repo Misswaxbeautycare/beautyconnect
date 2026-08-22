@@ -88,7 +88,7 @@ export default function ProInscriptionPage() {
 
       <div className="mt-10 rounded-3xl border border-beige-dark p-6 sm:p-8">
         <h2 className="font-display text-2xl text-noir">Créer mon espace pro</h2>
-        <p className="mt-1 text-sm text-noir/60">Rejoignez Misswaxbeautycare en tant que professionnel.</p>
+        <p className="mt-1 text-sm text-noir/60">Rejoignez Beauty Connect en tant que professionnel.</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
         <div className="grid grid-cols-2 gap-3">

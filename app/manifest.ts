@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Beauty Connect — Misswaxbeautycare",
+    name: "Beauty Connect",
     short_name: "BeautyConnect",
     description: "Réservez. Connectez. Rayonnez. Trouvez et réservez votre professionnel beauté.",
     start_url: "/",

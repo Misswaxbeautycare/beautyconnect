@@ -74,7 +74,7 @@ function RegisterForm() {
       </h1>
       <p className="mt-4 text-center text-sm text-noir/60">
         {isPro
-          ? "Rejoignez Misswaxbeautycare et développez votre activité."
+          ? "Rejoignez Beauty Connect et développez votre activité."
           : "Réservez en 2 minutes chez les meilleurs professionnels près de chez vous."}
       </p>
 

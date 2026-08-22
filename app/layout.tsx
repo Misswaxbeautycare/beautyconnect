@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "Beauty Connect | Réservez. Connectez. Rayonnez.",
   description:
-    "Plateforme de réservation beauté : coiffeurs, esthéticiennes, barbiers, onglerie, spa et plus. Réservez en ligne, payez en toute sécurité. Powered by Misswaxbeautycare.",
+    "Plateforme de réservation beauté : coiffeurs, esthéticiennes, barbiers, onglerie, spa et plus. Réservez en ligne, payez en toute sécurité.",
   keywords: [
     "réservation beauté",
     "salon de coiffure",

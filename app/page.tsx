@@ -221,7 +221,7 @@ export default async function HomePage() {
         </h2>
         <p className="relative mx-auto mb-8 max-w-md text-white/60">
           Développez votre activité, gérez votre agenda et vos paiements sur
-          Misswaxbeautycare.
+          Beauty Connect.
         </p>
         <Link
           href="/pro/inscription"
