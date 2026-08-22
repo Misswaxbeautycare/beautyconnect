@@ -8,6 +8,7 @@ import { SalonListRow } from "@/components/salon/SalonListRow";
 import { getEffectivePlan } from "@/lib/subscription-plans";
 import { getCurrentDbUser } from "@/lib/auth";
 import { distanceKm } from "@/lib/geo";
+import { countries, defaultCountry } from "@/lib/countries";
 
 interface RecherchePageProps {
   searchParams: Promise<{
@@ -19,15 +20,17 @@ interface RecherchePageProps {
     tri?: string;
     lat?: string;
     lng?: string;
+    pays?: string;
   }>;
 }
 
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
-  const { q, categorie, ville, prixMax, disponible, tri, lat, lng } = await searchParams;
+  const { q, categorie, ville, prixMax, disponible, tri, lat, lng, pays } = await searchParams;
   const prixMaxNum = prixMax ? Number(prixMax) : null;
   const userLat = lat ? Number(lat) : null;
   const userLng = lng ? Number(lng) : null;
   const hasUserPosition = userLat !== null && userLng !== null && !Number.isNaN(userLat) && !Number.isNaN(userLng);
+  const activeCountry = countries.find((c) => c.code === pays) ?? defaultCountry;
 
   let salons: SalonCardData[] = [];
   let errorMessage: string | null = null;
@@ -37,6 +40,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
       prisma.salon.findMany({
         where: {
           isActive: true,
+          country: activeCountry.label,
           AND: [
             q
               ? {
@@ -148,7 +152,22 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="flex items-center justify-between px-6 pt-6 pb-4">
+      <div className="flex items-center gap-1.5 px-6 pt-4 text-xs">
+        {countries.map((c) => (
+          <Link
+            key={c.code}
+            href={`/recherche?${new URLSearchParams({ ...(c.code !== defaultCountry.code ? { pays: c.code } : {}) }).toString()}`}
+            className={`rounded-full px-3 py-1 font-medium transition ${
+              c.code === activeCountry.code
+                ? "bg-noir text-white"
+                : "bg-beige text-noir/60 hover:bg-beige-dark"
+            }`}
+          >
+            {c.label}
+          </Link>
+        ))}
+      </div>
+      <div className="flex items-center justify-between px-6 pt-2 pb-4">
         <LocationPicker initialVille={ville} />
         <Link
           href="/"

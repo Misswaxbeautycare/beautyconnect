@@ -44,6 +44,7 @@ export const salonSchema = z.object({
   address: z.string().optional(),
   city: z.string().min(2),
   postalCode: z.string().optional(),
+  country: z.string().optional(),
   phone: z.string().optional(),
   categoryIds: z.array(z.string().uuid()).min(1, "Choisissez au moins une catégorie"),
   domicileZone: z.string().optional(),

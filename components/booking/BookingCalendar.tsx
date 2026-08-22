@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { addDays, format, isSameDay, setHours, setMinutes, startOfDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, ArrowRight, Check, Plus, ShoppingBasket, X } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatPriceForCountry } from "@/lib/countries";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { distanceKm } from "@/lib/geo";
@@ -30,6 +31,7 @@ interface BookingCalendarProps {
   salonLongitude?: number | null;
   deplacementBaseFee?: number | null;
   deplacementFeePerKm?: number | null;
+  country?: string;
 }
 
 type Step = "prestations" | "creneau" | "paiement" | "confirme";
@@ -45,8 +47,11 @@ export function BookingCalendar({
   salonLongitude,
   deplacementBaseFee,
   deplacementFeePerKm,
+  country,
 }: BookingCalendarProps) {
   const router = useRouter();
+  // Prix affichés dans la devise du pays du salon (€ Belgique, $ + FC RDC...).
+  const formatPrice = (amount: number) => formatPriceForCountry(amount, country);
   const [step, setStep] = useState<Step>("prestations");
   const [showCart, setShowCart] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>(services[0] ? [services[0].id] : []);

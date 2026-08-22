@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { X, ShoppingBasket, Plus, Check } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
+import { formatPriceForCountry } from "@/lib/countries";
 
-type Salon = { id: string; name: string; city: string; onlinePayment: boolean };
+type Salon = { id: string; name: string; city: string; country: string; onlinePayment: boolean };
 type Service = { id: string; name: string; price: number; durationMin: number; depositPct: number };
 
 interface QuickBookingModalProps {
@@ -52,6 +52,7 @@ export function QuickBookingModal({
 
   const selectedServices = services.filter((s) => serviceIds.includes(s.id));
   const selectedSalon = salons.find((s) => s.id === salonId);
+  const formatPrice = (amount: number) => formatPriceForCountry(amount, selectedSalon?.country);
   const salonAllowsOnlinePayment = Boolean(selectedSalon?.onlinePayment);
   const depositPct = selectedServices[0]?.depositPct ?? 30;
 

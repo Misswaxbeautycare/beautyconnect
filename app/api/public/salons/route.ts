@@ -5,7 +5,7 @@ import { getEffectivePlan } from "@/lib/subscription-plans";
 export async function GET() {
   const salonsRaw = await prisma.salon.findMany({
     where: { isActive: true },
-    select: { id: true, name: true, city: true, subscriptionPlan: true, subscriptionStatus: true },
+    select: { id: true, name: true, city: true, country: true, subscriptionPlan: true, subscriptionStatus: true },
     orderBy: { name: "asc" },
   });
 
@@ -13,6 +13,7 @@ export async function GET() {
     id: s.id,
     name: s.name,
     city: s.city,
+    country: s.country,
     onlinePayment: getEffectivePlan(s).onlinePayment,
   }));
 

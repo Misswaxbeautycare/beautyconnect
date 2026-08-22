@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { X, User } from "lucide-react";
+import { countries } from "@/lib/countries";
 import {
   MAX_IMAGE_SIZE_MB,
   validateImageFile,
@@ -30,6 +31,7 @@ interface SalonEditFormProps {
     description: string | null;
     address: string | null;
     city: string;
+    country: string;
     postalCode: string | null;
     phone: string | null;
     logoUrl: string | null;
@@ -65,6 +67,7 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       description: salon.description ?? "",
       address: salon.address ?? "",
       city: salon.city,
+      country: salon.country,
       postalCode: salon.postalCode ?? "",
       phone: salon.phone ?? "",
       categoryIds: salon.categories.map((c) => c.categoryId),
@@ -240,12 +243,24 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
           {errors.city && <p className="mt-1 text-xs text-red-600">{errors.city.message}</p>}
         </div>
         <div>
-          <label className="text-sm text-noir/70">Téléphone</label>
-          <input
-            {...register("phone")}
+          <label className="text-sm text-noir/70">Pays</label>
+          <select
+            {...register("country")}
             className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
-          />
+          >
+            {countries.map((c) => (
+              <option key={c.code} value={c.label}>{c.label}</option>
+            ))}
+          </select>
         </div>
+      </div>
+
+      <div>
+        <label className="text-sm text-noir/70">Téléphone</label>
+        <input
+          {...register("phone")}
+          className="mt-1 w-full rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
+        />
       </div>
 
       <div>

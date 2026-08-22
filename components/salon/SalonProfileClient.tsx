@@ -13,7 +13,8 @@ import {
   CreditCard,
   Zap,
 } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { formatPriceForCountry } from "@/lib/countries";
 import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { ProductCart } from "@/components/salon/ProductCart";
 import { FavoriteButton } from "@/components/salon/FavoriteButton";
@@ -68,6 +69,7 @@ export interface SalonProfileData {
   name: string;
   description: string | null;
   city: string;
+  country: string;
   address: string | null;
   postalCode: string | null;
   domicileZone: string | null;
@@ -113,6 +115,11 @@ const MODE_LABELS: Record<"SALON" | "DOMICILE" | "DEPLACEMENT", string> = {
    ============================================================ */
 
 export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
+  // Formate les prix dans la devise du pays du salon (euros pour la
+  // Belgique, dollars + francs congolais pour la RDC, etc.) — remplace
+  // l'euro fixe partout où le prix d'une prestation est affiché ci-dessous.
+  const formatPrice = (amount: number) => formatPriceForCountry(amount, salon.country);
+
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabKey>("apropos");
   const [preselectServiceId, setPreselectServiceId] = useState<string | null>(null);
@@ -596,6 +603,7 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 salonLongitude={salon.longitude}
                 deplacementBaseFee={salon.deplacementBaseFee}
                 deplacementFeePerKm={salon.deplacementFeePerKm}
+                country={salon.country}
                 key={preselectServiceId ?? "default"}
               />
             </div>

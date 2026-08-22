@@ -67,7 +67,7 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
-  const { name, description, address, city, postalCode, phone, categoryIds, domicileZone, deplacementZone, deplacementBaseFee, deplacementFeePerKm } = parsed.data;
+  const { name, description, address, city, postalCode, country, phone, categoryIds, domicileZone, deplacementZone, deplacementBaseFee, deplacementFeePerKm } = parsed.data;
   const keepPhotoIds: string[] = Array.isArray(body.keepPhotoIds) ? body.keepPhotoIds : [];
   const newPhotoUrls: string[] = Array.isArray(body.newPhotoUrls) ? body.newPhotoUrls : [];
   const logoUrl: string | null = typeof body.logoUrl === "string" ? body.logoUrl : salon.logoUrl;
@@ -100,6 +100,7 @@ export async function PATCH(req: NextRequest) {
           address,
           city,
           postalCode,
+          country: country || undefined,
           phone,
           domicileZone,
           deplacementZone,
@@ -147,7 +148,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { name, description, address, city, postalCode, phone, categoryIds } = parsed.data;
+  const { name, description, address, city, postalCode, country, phone, categoryIds } = parsed.data;
   const photoUrls: string[] = Array.isArray(body.photoUrls) ? body.photoUrls : [];
   if (photoUrls.length > defaultPlan.maxPhotos) {
     return NextResponse.json(
@@ -196,6 +197,7 @@ export async function POST(req: NextRequest) {
         address,
         city,
         postalCode,
+        country: country || "Belgique",
         phone,
         coverUrl: photoUrls[0] ?? null,
         categories: {

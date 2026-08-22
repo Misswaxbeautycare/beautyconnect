@@ -149,6 +149,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         name: salon.name,
         description: salon.description,
         city: salon.city,
+        country: salon.country,
         address: salon.address,
         postalCode: salon.postalCode,
         domicileZone: salon.domicileZone,
