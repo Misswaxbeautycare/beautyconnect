@@ -7,6 +7,7 @@ import { FeaturedSalonCard, type SalonCardData } from "@/components/salon/Featur
 import { SalonListRow } from "@/components/salon/SalonListRow";
 import { getEffectivePlan } from "@/lib/subscription-plans";
 import { getCurrentDbUser } from "@/lib/auth";
+import { distanceKm } from "@/lib/geo";
 
 interface RecherchePageProps {
   searchParams: Promise<{
@@ -16,12 +17,17 @@ interface RecherchePageProps {
     prixMax?: string;
     disponible?: string;
     tri?: string;
+    lat?: string;
+    lng?: string;
   }>;
 }
 
 export default async function RecherchePage({ searchParams }: RecherchePageProps) {
-  const { q, categorie, ville, prixMax, disponible, tri } = await searchParams;
+  const { q, categorie, ville, prixMax, disponible, tri, lat, lng } = await searchParams;
   const prixMaxNum = prixMax ? Number(prixMax) : null;
+  const userLat = lat ? Number(lat) : null;
+  const userLng = lng ? Number(lng) : null;
+  const hasUserPosition = userLat !== null && userLng !== null && !Number.isNaN(userLat) && !Number.isNaN(userLng);
 
   let salons: SalonCardData[] = [];
   let errorMessage: string | null = null;
@@ -89,6 +95,10 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         // Approximation : un salon avec peu de rendez-vous déjà pris dans
         // les 48h a de bonnes chances d'avoir un créneau proche disponible.
         const disponibiliteImmediate = salon.bookings.length < 20;
+        const distance =
+          hasUserPosition && salon.latitude != null && salon.longitude != null
+            ? distanceKm(userLat!, userLng!, salon.latitude, salon.longitude)
+            : null;
         return {
           id: salon.id,
           name: salon.name,
@@ -100,6 +110,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
           priority: plan.priorityPlacement ? 1 : 0,
           disponibiliteImmediate,
           prixMin,
+          distance,
           isFavorited: favoriteIds.has(salon.id),
         };
       })
@@ -108,6 +119,9 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         if (tri === "prix_asc") return (a.prixMin ?? Infinity) - (b.prixMin ?? Infinity);
         if (tri === "prix_desc") return (b.prixMin ?? -Infinity) - (a.prixMin ?? -Infinity);
         if (tri === "note") return (b.note ?? 0) - (a.note ?? 0);
+        if (tri === "proximite" && hasUserPosition) {
+          return (a.distance ?? Infinity) - (b.distance ?? Infinity);
+        }
         // Tri par défaut : mise en avant prioritaire, puis meilleure note
         if (b.priority !== a.priority) return b.priority - a.priority;
         return (b.note ?? 0) - (a.note ?? 0);
@@ -121,6 +135,7 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         note: salon.note,
         nombreAvis: salon.nombreAvis,
         isFavorited: salon.isFavorited,
+        distanceKm: salon.distance,
       }));
   } catch (err) {
     console.error("[/recherche] Erreur Prisma:", err);
@@ -146,6 +161,12 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
       <div className="px-6 pb-4">
         <form className="flex items-center gap-3 rounded-full border border-beige-dark bg-white pl-5 pr-1.5 py-1.5 shadow-sm">
           {ville && <input type="hidden" name="ville" value={ville} />}
+          {hasUserPosition && (
+            <>
+              <input type="hidden" name="lat" value={lat} />
+              <input type="hidden" name="lng" value={lng} />
+            </>
+          )}
           <Search size={18} className="shrink-0 text-noir/40" />
           <input
             type="text"
@@ -167,12 +188,19 @@ export default async function RecherchePage({ searchParams }: RecherchePageProps
         {q && <input type="hidden" name="q" value={q} />}
         {categorie && <input type="hidden" name="categorie" value={categorie} />}
         {ville && <input type="hidden" name="ville" value={ville} />}
+        {hasUserPosition && (
+          <>
+            <input type="hidden" name="lat" value={lat} />
+            <input type="hidden" name="lng" value={lng} />
+          </>
+        )}
         <select
           name="tri"
           defaultValue={tri ?? ""}
           className="rounded-full border border-beige-dark bg-white px-4 py-2 text-sm text-noir/70 outline-none focus:border-or"
         >
           <option value="">Trier : recommandés</option>
+          {hasUserPosition && <option value="proximite">Les plus proches</option>}
           <option value="note">Mieux notés</option>
           <option value="prix_asc">Prix croissant</option>
           <option value="prix_desc">Prix décroissant</option>

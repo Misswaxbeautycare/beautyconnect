@@ -31,7 +31,10 @@ export function SalonListRow({ salon }: { salon: SalonCardData }) {
             </span>
           )}
         </div>
-        <p className="truncate text-sm text-noir/50">{salon.city}</p>
+        <p className="truncate text-sm text-noir/50">
+          {salon.city}
+          {salon.distanceKm != null && ` · ${salon.distanceKm < 1 ? "< 1" : salon.distanceKm.toFixed(1)} km`}
+        </p>
         <p className="truncate text-xs text-noir/40">
           {salon.categorieLabel}
           {salon.nombreAvis > 0 && ` · ${salon.nombreAvis} avis`}

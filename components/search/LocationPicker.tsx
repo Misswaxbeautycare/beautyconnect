@@ -16,12 +16,20 @@ export function LocationPicker({ initialVille }: { initialVille?: string }) {
 
   const label = initialVille || "Toute la Belgique";
 
-  function goToVille(ville: string) {
+  function goToVille(ville: string, coords?: { lat: number; lng: number }) {
     const params = new URLSearchParams(searchParams.toString());
     if (ville) {
       params.set("ville", ville);
     } else {
       params.delete("ville");
+    }
+    if (coords) {
+      params.set("lat", String(coords.lat));
+      params.set("lng", String(coords.lng));
+      params.set("tri", "proximite");
+    } else {
+      params.delete("lat");
+      params.delete("lng");
     }
     router.push(`${pathname}?${params.toString()}`);
     setOpen(false);
@@ -52,7 +60,7 @@ export function LocationPicker({ initialVille }: { initialVille?: string }) {
             "";
           setLoadingGeo(false);
           if (ville) {
-            goToVille(ville);
+            goToVille(ville, { lat: latitude, lng: longitude });
           } else {
             setError("Impossible de déterminer votre ville. Essayez de la saisir directement.");
           }

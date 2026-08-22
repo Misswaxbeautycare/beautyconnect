@@ -11,6 +11,7 @@ export interface SalonCardData {
   note: number | null;
   nombreAvis: number;
   isFavorited?: boolean;
+  distanceKm?: number | null;
 }
 
 // Carte "à la une" utilisée dans les rangées de recommandations,
@@ -44,7 +45,10 @@ export function FeaturedSalonCard({ salon }: { salon: SalonCardData }) {
       <div className="mt-2.5 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-medium text-noir">{salon.name}</p>
-          <p className="truncate text-sm text-noir/50">{salon.city}</p>
+          <p className="truncate text-sm text-noir/50">
+            {salon.city}
+            {salon.distanceKm != null && ` · ${salon.distanceKm < 1 ? "< 1" : salon.distanceKm.toFixed(1)} km`}
+          </p>
           {salon.categorieLabel && (
             <p className="truncate text-xs text-noir/40">
               {salon.categorieLabel}
