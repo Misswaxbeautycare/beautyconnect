@@ -35,6 +35,7 @@ const sections: MenuSection[] = [
       { href: "/pro/equipe", label: "Mon équipe" },
       { href: "/pro/avis", label: "Mes avis" },
       { href: "/pro/visites", label: "Visites de ma fiche" },
+      { href: "/pro/historique", label: "Historique des rendez-vous" },
     ],
   },
   {

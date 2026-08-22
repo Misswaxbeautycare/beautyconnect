@@ -198,6 +198,15 @@ export default async function AgendaPage() {
           <p className="text-noir/40">Aucun rendez-vous à venir.</p>
         )}
       </div>
+
+      <div className="mt-10 text-center">
+        <Link
+          href="/pro/historique"
+          className="text-sm font-medium text-or-dark hover:underline"
+        >
+          Voir l&apos;historique des rendez-vous passés →
+        </Link>
+      </div>
     </div>
   );
 }
