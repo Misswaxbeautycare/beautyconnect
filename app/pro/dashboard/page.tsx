@@ -12,6 +12,7 @@ import { startOfMonth, startOfDay, endOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
 import { PaymentLinkButton } from "@/components/pro/PaymentLinkButton";
 import { paymentBadge } from "@/lib/payment-badge";
+import { OnboardingChecklist } from "@/components/pro/OnboardingChecklist";
 
 export default async function ProDashboard() {
   const supabase = await createClient();
@@ -44,6 +45,9 @@ export default async function ProDashboard() {
         where: { date: { gte: startOfDay(new Date()), lte: endOfDay(new Date()) } },
         include: { client: true, service: true, payment: true },
       },
+      photos: { select: { id: true }, take: 1 },
+      openingHours: { select: { id: true }, take: 1 },
+      services: { where: { isActive: true }, select: { id: true }, take: 1 },
     },
   });
 
@@ -100,6 +104,16 @@ export default async function ProDashboard() {
         <ShareAppButton />
         <InstallAppButton />
       </div>
+
+      <OnboardingChecklist
+        items={[
+          { label: "Renseigner la description et l'adresse du salon", done: Boolean(salon.description && salon.address), href: "/pro/salon/modifier" },
+          { label: "Ajouter au moins une photo", done: salon.photos.length > 0, href: "/pro/salon/modifier" },
+          { label: "Renseigner les horaires d'ouverture", done: salon.openingHours.length > 0, href: "/pro/horaires" },
+          { label: "Ajouter au moins une prestation", done: salon.services.length > 0, href: "/pro/services" },
+          { label: "Renseigner un numéro de téléphone", done: Boolean(salon.phone), href: "/pro/salon/modifier" },
+        ]}
+      />
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
         <Card className="p-5">
