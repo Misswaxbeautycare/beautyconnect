@@ -62,6 +62,12 @@ export default async function AdminDashboard() {
       >
         Versements à effectuer aux salons
       </Link>
+      <Link
+        href="/admin/salons-incomplets"
+        className="mt-4 ml-3 inline-block rounded-full bg-beige border border-beige-dark text-noir px-6 py-3 text-sm font-semibold hover:bg-beige-dark transition"
+      >
+        Salons au profil incomplet
+      </Link>
     </div>
   );
 }
