@@ -153,6 +153,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         postalCode: salon.postalCode,
         domicileZone: salon.domicileZone,
         deplacementZone: salon.deplacementZone,
+        deplacementBaseFee: salon.deplacementBaseFee ? Number(salon.deplacementBaseFee) : null,
         deplacementFeePerKm: salon.deplacementFeePerKm ? Number(salon.deplacementFeePerKm) : null,
         latitude: salon.latitude,
         longitude: salon.longitude,

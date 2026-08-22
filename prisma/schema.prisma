@@ -128,9 +128,10 @@ model Salon {
   // salon, qui elle n'est révélée qu'après réservation confirmée.
   domicileZone     String?
   deplacementZone  String?
-  // Tarif appliqué en plus du prix de la prestation, par kilomètre parcouru
-  // pour se rendre chez la cliente — uniquement pertinent pour les
-  // prestations en mode DEPLACEMENT.
+  // Tarif de déplacement = forfait de base (souvent 20-25€, pour que ça
+  // reste rentable même pour un trajet très court) + un montant par
+  // kilomètre parcouru. Les deux sont optionnels indépendamment.
+  deplacementBaseFee  Decimal? @db.Decimal(6, 2)
   deplacementFeePerKm Decimal? @db.Decimal(6, 2)
 
   stripeCustomerId     String?
@@ -316,6 +317,11 @@ model Booking {
   durationMin Int
   status      BookingStatus @default(PENDING)
   notes       String?
+
+  // Renseignés uniquement si la réservation concerne une prestation en
+  // mode DEPLACEMENT (le pro se déplace chez la cliente).
+  deplacementAddress   String?
+  deplacementFeeAmount Decimal? @db.Decimal(10, 2)
 
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt

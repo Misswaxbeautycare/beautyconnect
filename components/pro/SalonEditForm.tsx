@@ -35,6 +35,7 @@ interface SalonEditFormProps {
     logoUrl: string | null;
     domicileZone: string | null;
     deplacementZone: string | null;
+    deplacementBaseFee: number | null;
     deplacementFeePerKm: number | null;
     photos: ExistingPhoto[];
     categories: { categoryId: string }[];
@@ -69,6 +70,7 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       categoryIds: salon.categories.map((c) => c.categoryId),
       domicileZone: salon.domicileZone ?? "",
       deplacementZone: salon.deplacementZone ?? "",
+      deplacementBaseFee: salon.deplacementBaseFee ?? undefined,
       deplacementFeePerKm: salon.deplacementFeePerKm ?? undefined,
     } as unknown as SalonInput,
   });
@@ -297,22 +299,39 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       </div>
 
       <div>
-        <label className="text-sm text-noir/70">Frais de déplacement par km (optionnel)</label>
-        <div className="mt-1 flex items-center gap-2">
-          <input
-            type="number"
-            step="0.5"
-            min="0"
-            max="50"
-            {...register("deplacementFeePerKm", { valueAsNumber: true })}
-            placeholder="Ex: 1.5"
-            className="w-32 rounded-lg border border-beige-dark px-4 py-3 outline-none focus:border-or"
-          />
-          <span className="text-sm text-noir/50">€ / km</span>
+        <label className="text-sm text-noir/70">Frais de déplacement (optionnel)</label>
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="200"
+              {...register("deplacementBaseFee", { valueAsNumber: true })}
+              placeholder="Ex: 20"
+              className="w-24 rounded-lg border border-beige-dark px-3 py-3 outline-none focus:border-or"
+            />
+            <span className="text-sm text-noir/50">€ forfait</span>
+          </div>
+          <span className="text-noir/40">+</span>
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="50"
+              {...register("deplacementFeePerKm", { valueAsNumber: true })}
+              placeholder="Ex: 1.5"
+              className="w-24 rounded-lg border border-beige-dark px-3 py-3 outline-none focus:border-or"
+            />
+            <span className="text-sm text-noir/50">€ / km</span>
+          </div>
         </div>
         <p className="mt-1 text-xs text-noir/40">
-          Ajouté au prix de la prestation, en fonction de la distance parcourue pour se rendre
-          chez la cliente. Laissez vide si le déplacement est déjà inclus dans vos tarifs.
+          Le forfait couvre le déplacement même pour un trajet très court ; le tarif au km
+          s&apos;ajoute ensuite selon la distance réelle jusqu&apos;à la cliente. Ces frais
+          s&apos;ajoutent automatiquement au prix de la prestation lors de la réservation.
+          Laissez vide si le déplacement est déjà inclus dans vos tarifs.
         </p>
       </div>
 

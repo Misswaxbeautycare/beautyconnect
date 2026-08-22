@@ -22,6 +22,8 @@ export const bookingSchema = z.object({
   date: z.string(),
   notes: z.string().optional(),
   paymentType: z.enum(["DEPOSIT", "FULL", "ON_SITE"]),
+  deplacementAddress: z.string().max(300).optional(),
+  deplacementFeeAmount: z.number().min(0).max(500).optional(),
 });
 export type BookingInput = z.infer<typeof bookingSchema>;
 
@@ -46,6 +48,7 @@ export const salonSchema = z.object({
   categoryIds: z.array(z.string().uuid()).min(1, "Choisissez au moins une catégorie"),
   domicileZone: z.string().optional(),
   deplacementZone: z.string().optional(),
+  deplacementBaseFee: z.number().min(0).max(200).optional(),
   deplacementFeePerKm: z.number().min(0).max(50).optional(),
 });
 export type SalonInput = z.infer<typeof salonSchema>;

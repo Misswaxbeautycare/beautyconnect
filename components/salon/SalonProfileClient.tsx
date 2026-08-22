@@ -72,6 +72,7 @@ export interface SalonProfileData {
   postalCode: string | null;
   domicileZone: string | null;
   deplacementZone: string | null;
+  deplacementBaseFee: number | null;
   deplacementFeePerKm: number | null;
   latitude: number | null;
   longitude: number | null;
@@ -587,9 +588,14 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                   price: s.price,
                   durationMin: s.durationMin,
                   depositPct: s.depositPct,
+                  modes: s.modes,
                 }))}
                 bookedSlots={salon.bookedSlots}
                 onlinePayment={salon.onlinePayment}
+                salonLatitude={salon.latitude}
+                salonLongitude={salon.longitude}
+                deplacementBaseFee={salon.deplacementBaseFee}
+                deplacementFeePerKm={salon.deplacementFeePerKm}
                 key={preselectServiceId ?? "default"}
               />
             </div>

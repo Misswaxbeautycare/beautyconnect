@@ -33,7 +33,11 @@ export default async function ModifierSalonPage() {
       </p>
       <SalonEditForm
         categories={categories}
-        salon={{ ...salon, deplacementFeePerKm: salon.deplacementFeePerKm ? Number(salon.deplacementFeePerKm) : null }}
+        salon={{
+          ...salon,
+          deplacementBaseFee: salon.deplacementBaseFee ? Number(salon.deplacementBaseFee) : null,
+          deplacementFeePerKm: salon.deplacementFeePerKm ? Number(salon.deplacementFeePerKm) : null,
+        }}
         maxPhotos={plan.maxPhotos}
       />
     </div>

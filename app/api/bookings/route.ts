@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { salonId, serviceId, additionalServiceIds = [], date, notes, paymentType } = parsed.data;
+  const { salonId, serviceId, additionalServiceIds = [], date, notes, paymentType, deplacementAddress, deplacementFeeAmount } = parsed.data;
 
   // Vérification immédiate plutôt que d'attendre l'appel réel à Stripe —
   // évite un délai avant d'afficher l'erreur quand la clé n'est pas encore
@@ -46,9 +46,21 @@ export async function POST(req: NextRequest) {
 
   const totalDuration =
     service.durationMin + additionalServices.reduce((sum: number, s: typeof service) => sum + s.durationMin, 0);
-  const totalPrice =
+  const servicesPrice =
     Number(service.price) +
     additionalServices.reduce((sum: number, s: typeof service) => sum + Number(s.price), 0);
+
+  // Le montant de déplacement envoyé par le client est recalculé côté
+  // serveur à partir des tarifs réels du salon, plafonné à une distance
+  // raisonnable (150km) — évite qu'un montant falsifié soit accepté tel quel.
+  const maxDeplacementFee =
+    Number(salon.deplacementBaseFee ?? 0) + Number(salon.deplacementFeePerKm ?? 0) * 150;
+  const hasDeplacementPricing = Boolean(salon.deplacementBaseFee || salon.deplacementFeePerKm);
+  const safeDeplacementFee =
+    hasDeplacementPricing && deplacementFeeAmount
+      ? Math.min(Math.max(deplacementFeeAmount, 0), maxDeplacementFee)
+      : 0;
+  const totalPrice = servicesPrice + safeDeplacementFee;
 
   const plan = getEffectivePlan(salon);
   if (paymentType !== "ON_SITE" && !plan.onlinePayment) {
@@ -95,6 +107,8 @@ export async function POST(req: NextRequest) {
         durationMin: totalDuration,
         notes,
         status: "CONFIRMED",
+        deplacementAddress: safeDeplacementFee > 0 ? deplacementAddress : undefined,
+        deplacementFeeAmount: safeDeplacementFee > 0 ? safeDeplacementFee : undefined,
         additionalServices: { create: additionalServicesData },
       },
     });
@@ -143,11 +157,19 @@ export async function POST(req: NextRequest) {
       durationMin: totalDuration,
       notes,
       status: "PENDING",
+      deplacementAddress: safeDeplacementFee > 0 ? deplacementAddress : undefined,
+      deplacementFeeAmount: safeDeplacementFee > 0 ? safeDeplacementFee : undefined,
       additionalServices: { create: additionalServicesData },
     },
   });
 
-  const amount = paymentType === "DEPOSIT" ? (totalPrice * service.depositPct) / 100 : totalPrice;
+  // L'acompte s'applique uniquement au prix de la prestation — les frais de
+  // déplacement, eux, sont dus en totalité dès la réservation, comme un vrai
+  // trajet.
+  const amount =
+    paymentType === "DEPOSIT"
+      ? (servicesPrice * service.depositPct) / 100 + safeDeplacementFee
+      : totalPrice;
   const commissionAmount = (amount * 15) / 100; // commission plateforme par défaut
 
   await prisma.payment.create({
@@ -171,7 +193,9 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: "eur",
-            product_data: { name: `${allNames} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})` },
+            product_data: {
+              name: `${allNames}${safeDeplacementFee > 0 ? " + déplacement" : ""} (${paymentType === "DEPOSIT" ? "Acompte" : "Paiement complet"})`,
+            },
             unit_amount: Math.round(amount * 100),
           },
           quantity: 1,

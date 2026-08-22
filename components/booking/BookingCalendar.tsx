@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check, Plus, ShoppingBasket, X } from "lucide-re
 import { cn, formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
+import { distanceKm } from "@/lib/geo";
 
 interface Service {
   id: string;
@@ -14,6 +15,7 @@ interface Service {
   price: number;
   durationMin: number;
   depositPct: number;
+  modes: string[];
 }
 
 interface BookingCalendarProps {
@@ -24,6 +26,10 @@ interface BookingCalendarProps {
   onlinePayment: boolean;
   openHour?: number;
   closeHour?: number;
+  salonLatitude?: number | null;
+  salonLongitude?: number | null;
+  deplacementBaseFee?: number | null;
+  deplacementFeePerKm?: number | null;
 }
 
 type Step = "prestations" | "creneau" | "paiement" | "confirme";
@@ -35,6 +41,10 @@ export function BookingCalendar({
   onlinePayment,
   openHour = 9,
   closeHour = 18,
+  salonLatitude,
+  salonLongitude,
+  deplacementBaseFee,
+  deplacementFeePerKm,
 }: BookingCalendarProps) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("prestations");
@@ -46,14 +56,48 @@ export function BookingCalendar({
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
+  // Déplacement (le pro se déplace chez la cliente) — adresse et frais
+  // calculés à la volée via géocodage + distance réelle jusqu'au salon.
+  const [deplacementAddress, setDeplacementAddress] = useState("");
+  const [deplacementFee, setDeplacementFee] = useState<number | null>(null);
+  const [deplacementDistance, setDeplacementDistance] = useState<number | null>(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
+
   const selectedServices = useMemo(
     () => services.filter((s) => selectedIds.includes(s.id)),
     [services, selectedIds]
   );
-  const totalPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const hasDeplacementService = selectedServices.some((s) => s.modes.includes("DEPLACEMENT"));
+  const servicesPrice = selectedServices.reduce((sum, s) => sum + s.price, 0);
+  const totalPrice = servicesPrice + (hasDeplacementService && deplacementFee ? deplacementFee : 0);
   const totalDuration = selectedServices.reduce((sum, s) => sum + s.durationMin, 0);
   // Pour l'acompte, on applique le % de la première prestation choisie
   const depositPct = selectedServices[0]?.depositPct ?? 30;
+
+  async function calculerFraisDeplacement() {
+    if (!deplacementAddress.trim() || salonLatitude == null || salonLongitude == null) return;
+    setGeocoding(true);
+    setGeocodeError(null);
+    try {
+      const res = await fetch(`/api/geocode?address=${encodeURIComponent(deplacementAddress)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setGeocodeError(typeof data.error === "string" ? data.error : "Adresse introuvable.");
+        setDeplacementFee(null);
+        return;
+      }
+      const distance = distanceKm(salonLatitude, salonLongitude, data.lat, data.lng);
+      const fee = (deplacementBaseFee ?? 0) + (deplacementFeePerKm ?? 0) * distance;
+      setDeplacementDistance(distance);
+      setDeplacementFee(Math.round(fee * 100) / 100);
+    } catch {
+      setGeocodeError("Impossible de localiser cette adresse pour le moment.");
+      setDeplacementFee(null);
+    } finally {
+      setGeocoding(false);
+    }
+  }
 
   function toggleService(id: string) {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -80,6 +124,10 @@ export function BookingCalendar({
 
   async function confirmBooking(paymentType: "DEPOSIT" | "FULL" | "ON_SITE") {
     if (selectedServices.length === 0 || !selectedSlot) return;
+    if (hasDeplacementService && !deplacementFee) {
+      setError("Merci de renseigner votre adresse et de calculer les frais de déplacement.");
+      return;
+    }
     setError(null);
     setLoading(true);
 
@@ -94,6 +142,9 @@ export function BookingCalendar({
           additionalServiceIds: rest.map((s) => s.id),
           date: selectedSlot.toISOString(),
           paymentType,
+          ...(hasDeplacementService
+            ? { deplacementAddress, deplacementFeeAmount: deplacementFee }
+            : {}),
         }),
       });
 
@@ -356,6 +407,40 @@ export function BookingCalendar({
           </div>
 
           <div className="p-5">
+            {hasDeplacementService && (
+              <div className="mb-5 rounded-2xl border border-beige-dark p-4">
+                <p className="text-sm font-medium text-noir">Adresse du rendez-vous</p>
+                <p className="mt-0.5 text-xs text-noir/50">
+                  Le professionnel se déplace chez vous — les frais de déplacement sont calculés
+                  selon la distance réelle.
+                </p>
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="text"
+                    value={deplacementAddress}
+                    onChange={(e) => { setDeplacementAddress(e.target.value); setDeplacementFee(null); }}
+                    placeholder="Rue, numéro, ville..."
+                    className="flex-1 rounded-lg border border-beige-dark px-3 py-2.5 text-sm outline-none focus:border-or"
+                  />
+                  <button
+                    type="button"
+                    onClick={calculerFraisDeplacement}
+                    disabled={geocoding || !deplacementAddress.trim()}
+                    className="shrink-0 rounded-lg bg-noir px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-or hover:text-noir disabled:opacity-40"
+                  >
+                    {geocoding ? "Calcul..." : "Calculer les frais"}
+                  </button>
+                </div>
+                {geocodeError && <p className="mt-2 text-xs text-red-600">{geocodeError}</p>}
+                {deplacementFee !== null && deplacementDistance !== null && (
+                  <p className="mt-2 text-sm text-or-dark">
+                    ≈ {deplacementDistance.toFixed(1)} km → {formatPrice(deplacementFee)} de frais de
+                    déplacement
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="rounded-2xl bg-beige p-4">
               {selectedServices.map((s) => (
                 <div key={s.id} className="flex items-center justify-between py-1 text-sm">
@@ -363,6 +448,12 @@ export function BookingCalendar({
                   <span className="text-noir">{formatPrice(s.price)}</span>
                 </div>
               ))}
+              {hasDeplacementService && deplacementFee !== null && (
+                <div className="flex items-center justify-between py-1 text-sm">
+                  <span className="text-noir/70">Frais de déplacement</span>
+                  <span className="text-noir">{formatPrice(deplacementFee)}</span>
+                </div>
+              )}
               <div className="mt-2 flex items-center justify-between border-t border-beige-dark pt-2 text-sm font-semibold text-noir">
                 <span>Total</span>
                 <span>{totalPrice > 0 ? formatPrice(totalPrice) : "Gratuit"}</span>
@@ -380,13 +471,13 @@ export function BookingCalendar({
               <div className="mt-5">
                 <p className="mb-3 text-sm font-medium text-noir/70">Comment souhaitez-vous régler ?</p>
                 <div className="flex flex-col gap-3">
-                  <Button variant="outline" disabled={loading} onClick={() => confirmBooking("DEPOSIT")}>
+                  <Button variant="outline" disabled={loading || (hasDeplacementService && !deplacementFee)} onClick={() => confirmBooking("DEPOSIT")}>
                     Acompte en ligne ({depositPct}%)
                   </Button>
-                  <Button variant="outline" disabled={loading} onClick={() => confirmBooking("FULL")}>
+                  <Button variant="outline" disabled={loading || (hasDeplacementService && !deplacementFee)} onClick={() => confirmBooking("FULL")}>
                     Payer en ligne (totalité)
                   </Button>
-                  <Button disabled={loading} onClick={() => confirmBooking("ON_SITE")}>
+                  <Button disabled={loading || (hasDeplacementService && !deplacementFee)} onClick={() => confirmBooking("ON_SITE")}>
                     Payer sur place
                   </Button>
                 </div>
@@ -396,7 +487,7 @@ export function BookingCalendar({
                 <p className="mb-3 text-xs text-noir/50">
                   Réservation à régler directement sur place, en espèces ou par carte.
                 </p>
-                <Button className="w-full" disabled={loading} onClick={() => confirmBooking("ON_SITE")}>
+                <Button className="w-full" disabled={loading || (hasDeplacementService && !deplacementFee)} onClick={() => confirmBooking("ON_SITE")}>
                   {loading ? "Confirmation..." : "Confirmer le rendez-vous"}
                 </Button>
               </div>
