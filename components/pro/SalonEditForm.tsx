@@ -321,7 +321,7 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
               min="0"
               max="50"
               {...register("deplacementFeePerKm", { valueAsNumber: true })}
-              placeholder="Ex: 1.5"
+              placeholder="Ex: 1"
               className="w-24 rounded-lg border border-beige-dark px-3 py-3 outline-none focus:border-or"
             />
             <span className="text-sm text-noir/50">€ / km</span>
