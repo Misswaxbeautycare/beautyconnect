@@ -4,6 +4,49 @@ import { getEffectivePlan } from "@/lib/subscription-plans";
 import { formatDate } from "@/lib/utils";
 import { getCurrentDbUser } from "@/lib/auth";
 import { SalonProfileClient } from "@/components/salon/SalonProfileClient";
+import type { Metadata } from "next";
+
+// Requête commune à generateMetadata et au rendu de la page — évite
+// d'interroger deux fois la base pour le même salon.
+async function getSalonForMetadata(id: string) {
+  return prisma.salon.findUnique({
+    where: { id },
+    select: {
+      name: true,
+      description: true,
+      city: true,
+      coverUrl: true,
+      categories: { include: { category: true } },
+      reviews: { select: { rating: true } },
+    },
+  });
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const salon = await getSalonForMetadata(id);
+  if (!salon) return {};
+
+  const categorie = salon.categories[0]?.category.name;
+  const title = `${salon.name}${categorie ? ` — ${categorie}` : ""} à ${salon.city} | Beauty Connect`;
+  const description =
+    salon.description?.slice(0, 155) ||
+    `Réservez en ligne chez ${salon.name}, ${categorie ?? "professionnel beauté"} à ${salon.city}. Confirmation instantanée sur Beauty Connect.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: salon.coverUrl ? [salon.coverUrl] : undefined,
+    },
+  };
+}
 
 export default async function SalonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -55,8 +98,52 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
     ...salon.photos.map((p: (typeof salon.photos)[number]) => p.url),
   ];
 
+  // Données structurées schema.org — aide Google à afficher une fiche
+  // enrichie (note, avis, adresse, horaires) directement dans les résultats
+  // de recherche, sans que ça n'apparaisse nulle part côté utilisateur.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BeautySalon",
+    name: salon.name,
+    description: salon.description ?? undefined,
+    image: gallery[0] ?? undefined,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: salon.address ?? undefined,
+      addressLocality: salon.city,
+      postalCode: salon.postalCode ?? undefined,
+      addressCountry: "BE",
+    },
+    ...(salon.latitude && salon.longitude
+      ? { geo: { "@type": "GeoCoordinates", latitude: salon.latitude, longitude: salon.longitude } }
+      : {}),
+    telephone: salon.phone ?? undefined,
+    ...(averageRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: averageRating.toFixed(1),
+            reviewCount: salon.reviews.length,
+          },
+        }
+      : {}),
+    openingHoursSpecification: salon.openingHours
+      .filter((h: (typeof salon.openingHours)[number]) => !h.isClosed)
+      .map((h: (typeof salon.openingHours)[number]) => ({
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][h.dayOfWeek],
+        opens: h.openTime,
+        closes: h.closeTime,
+      })),
+  };
+
   return (
-    <SalonProfileClient
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <SalonProfileClient
       salon={{
         id: salon.id,
         name: salon.name,
@@ -113,6 +200,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
         onlinePayment: plan.onlinePayment,
         isFavorited,
       }}
-    />
+      />
+    </>
   );
 }
