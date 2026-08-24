@@ -28,7 +28,19 @@ function RegisterForm() {
       password: data.password,
     });
     if (error || !authData.user) {
-      setError("Impossible de créer le compte. Réessayez.");
+      setError(error?.message.includes("already registered")
+        ? "Un compte existe déjà avec cet email — connectez-vous plutôt."
+        : "Impossible de créer le compte. Réessayez.");
+      return;
+    }
+    // Avec la confirmation email désactivée, Supabase peut renvoyer un
+    // compte existant sans erreur explicite (pour ne pas révéler qui est
+    // déjà inscrit) — reconnaissable à l'absence de session ET une date de
+    // création bien antérieure à maintenant. On refuse alors de créer un
+    // profil, pour éviter la confusion d'un second compte "fantôme".
+    const createdRecently = Date.now() - new Date(authData.user.created_at).getTime() < 10_000;
+    if (!authData.session || !createdRecently) {
+      setError("Un compte existe déjà avec cet email — connectez-vous plutôt.");
       return;
     }
 
