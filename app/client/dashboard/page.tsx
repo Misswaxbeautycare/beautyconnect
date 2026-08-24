@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { ShareAppButton } from "@/components/ShareAppButton";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { ReviewForm } from "@/components/ReviewForm";
+import { LogoutButton } from "@/components/LogoutButton";
 import Link from "next/link";
 
 export default async function ClientDashboard() {
@@ -45,6 +46,7 @@ export default async function ClientDashboard() {
           )}
           <ShareAppButton label="Partager" />
           <InstallAppButton />
+          <LogoutButton className="text-sm text-noir/50 underline hover:text-red-600" />
         </div>
       </div>
 

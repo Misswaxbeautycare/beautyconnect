@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, X, ChevronRight } from "lucide-react";
+import { LogoutButton } from "@/components/LogoutButton";
 
 interface MenuLink {
   href: string;
@@ -105,6 +106,8 @@ export function DashboardMenu({ isAdmin }: { isAdmin: boolean }) {
                   <ChevronRight size={15} />
                 </Link>
               )}
+
+              <LogoutButton className="flex items-center justify-center gap-2 rounded-2xl border border-beige-dark px-4 py-3.5 text-sm font-medium text-red-600 hover:bg-red-50" />
             </div>
         </div>
       )}

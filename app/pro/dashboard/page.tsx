@@ -7,6 +7,7 @@ import { CopySalonLink } from "@/components/pro/CopySalonLink";
 import { DashboardMenu } from "@/components/pro/DashboardMenu";
 import { ShareAppButton } from "@/components/ShareAppButton";
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { LogoutButton } from "@/components/LogoutButton";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { startOfMonth, startOfDay, endOfDay } from "date-fns";
 import { Phone, Mail } from "lucide-react";
@@ -103,6 +104,7 @@ export default async function ProDashboard() {
         <CopySalonLink salonId={salon.id} />
         <ShareAppButton />
         <InstallAppButton />
+        <LogoutButton className="text-sm text-noir/50 underline hover:text-red-600" />
       </div>
 
       <OnboardingChecklist
