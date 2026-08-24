@@ -4,13 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +32,10 @@ function LoginForm() {
     // un tableau de bord.
     const redirect = searchParams.get("redirect");
     if (redirect) {
-      router.push(redirect);
-      router.refresh();
+      // Rechargement complet (pas router.push) : garantit que le serveur
+      // voit bien la session tout juste créée, plutôt qu'une navigation
+      // client qui pourrait partir avant que le cookie soit disponible.
+      window.location.href = redirect;
       return;
     }
 
@@ -44,11 +45,10 @@ function LoginForm() {
       const res = await fetch("/api/users");
       const body = await res.json();
       const isPro = Boolean(body.isPro);
-      router.push(isPro ? "/pro/dashboard" : "/client/dashboard");
+      window.location.href = isPro ? "/pro/dashboard" : "/client/dashboard";
     } catch {
-      router.push("/client/dashboard");
+      window.location.href = "/client/dashboard";
     }
-    router.refresh();
   }
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">

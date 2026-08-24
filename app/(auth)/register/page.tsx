@@ -5,12 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterInput } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 
 function RegisterForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const isPro = searchParams.get("type") === "pro";
   const supabase = createClient();
@@ -47,7 +46,9 @@ function RegisterForm() {
       }),
     });
 
-    router.push(searchParams.get("redirect") || (isPro ? "/pro/dashboard" : "/client/dashboard"));
+    // Rechargement complet (pas router.push) : garantit que le serveur voit
+    // bien la session tout juste créée par l'inscription.
+    window.location.href = searchParams.get("redirect") || (isPro ? "/pro/dashboard" : "/client/dashboard");
   }
 
   return (
