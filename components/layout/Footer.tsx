@@ -1,7 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import { LogoutButton } from "@/components/LogoutButton";
 
-export function Footer() {
+export async function Footer() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <footer className="border-t border-beige-dark bg-noir text-beige">
       <div className="mx-auto max-w-7xl px-6 py-12 grid gap-8 md:grid-cols-4">
@@ -29,10 +34,15 @@ export function Footer() {
           </ul>
         </div>
         <div>
-          <p className="mb-3 text-sm font-medium text-or">BeautyConnect</p>
+          <p className="mb-3 text-sm font-medium text-or">Contact</p>
           <ul className="space-y-2 text-sm text-beige/70">
             <li><Link href="/a-propos" className="hover:text-white hover:underline">À propos</Link></li>
             <li><Link href="/contact" className="hover:text-white hover:underline">Contact</Link></li>
+            {user && (
+              <li>
+                <LogoutButton className="text-beige/70 hover:text-white hover:underline" />
+              </li>
+            )}
           </ul>
         </div>
       </div>
