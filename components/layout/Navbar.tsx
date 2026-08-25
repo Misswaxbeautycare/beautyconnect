@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Briefcase } from "lucide-react";
 import { ReserverButton } from "@/components/layout/ReserverButton";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getCurrentDbUser } from "@/lib/auth";
@@ -34,6 +35,15 @@ export async function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          {isPro && (
+            <Link
+              href="/pro/dashboard"
+              aria-label="Espace professionnel"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-noir/70 hover:bg-beige hover:text-noir md:hidden"
+            >
+              <Briefcase size={18} />
+            </Link>
+          )}
           {dbUser ? (
             <NotificationBell destinationHref={isPro ? "/pro/dashboard" : "/client/dashboard"} />
           ) : (
