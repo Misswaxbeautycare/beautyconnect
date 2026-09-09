@@ -59,6 +59,12 @@ export default async function ProDashboard() {
         <p className="mt-2 text-noir/60">
           Vous n&apos;avez pas encore configuré votre espace professionnel.
         </p>
+        <div className="mx-auto mt-6 max-w-md rounded-xl border border-amber-300 bg-amber-50 p-4 text-left text-xs text-amber-900">
+          <p className="font-semibold">Vérification temporaire (à retirer ensuite) :</p>
+          <p className="mt-1">Connecté avec l&apos;email : {dbUser.email}</p>
+          <p className="mt-1">Identifiant de compte (dbUser.id) : {dbUser.id}</p>
+          <p className="mt-1">Identifiant de connexion (authId) : {user.id}</p>
+        </div>
         <Link
           href="/pro/salon/creer"
           className="mt-6 inline-block rounded-full bg-noir text-white px-8 py-3 text-sm font-semibold hover:bg-neutral-800 transition"
