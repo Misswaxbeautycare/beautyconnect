@@ -10,6 +10,7 @@ const productSchema = z.object({
   price: z.number().positive(),
   stock: z.number().int().min(0).default(0),
   imageUrl: z.string().optional(),
+  imageUrls: z.array(z.string()).max(9).optional(),
 });
 
 async function requireBoutiqueSalon() {

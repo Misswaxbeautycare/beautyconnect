@@ -178,6 +178,7 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           name: p.name,
           price: Number(p.price),
           imageUrl: p.imageUrl,
+          imageUrls: p.imageUrls,
         })),
         reviews: salon.reviews.map((r: (typeof salon.reviews)[number]) => ({
           id: r.id,

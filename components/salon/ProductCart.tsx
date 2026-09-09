@@ -11,6 +11,7 @@ export interface ProductData {
   name: string;
   price: number;
   imageUrl: string | null;
+  imageUrls: string[];
 }
 
 export function ProductCart({
@@ -315,17 +316,34 @@ export function ProductCart({
               <X size={20} />
             </button>
             <div className="max-h-[85vh] max-w-lg overflow-hidden rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
-              {lightboxProduct.imageUrl && (
-                <img
-                  src={lightboxProduct.imageUrl}
-                  alt={lightboxProduct.name}
-                  className="max-h-[70vh] w-full object-contain"
-                />
-              )}
+              {(() => {
+                const allPhotos = [
+                  ...(lightboxProduct.imageUrl ? [lightboxProduct.imageUrl] : []),
+                  ...lightboxProduct.imageUrls,
+                ];
+                if (allPhotos.length === 0) return null;
+                return (
+                  <div className="flex max-h-[70vh] snap-x snap-mandatory gap-0 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+                    {allPhotos.map((url, i) => (
+                      <img
+                        key={i}
+                        src={url}
+                        alt={`${lightboxProduct.name} ${i + 1}`}
+                        className="h-[70vh] w-full shrink-0 snap-center object-contain"
+                      />
+                    ))}
+                  </div>
+                );
+              })()}
               <div className="flex items-center justify-between p-4">
                 <div>
                   <p className="font-medium text-noir">{lightboxProduct.name}</p>
                   <p className="text-sm text-noir/60">{formatPrice(lightboxProduct.price)}</p>
+                  {(lightboxProduct.imageUrls.length > 0) && (
+                    <p className="mt-0.5 text-xs text-noir/40">
+                      Faites glisser pour voir les {1 + lightboxProduct.imageUrls.length} photos
+                    </p>
+                  )}
                 </div>
                 <button
                   type="button"

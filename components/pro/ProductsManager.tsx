@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/utils";
-import { Trash2, ImagePlus } from "lucide-react";
+import { Trash2, ImagePlus, X, Plus } from "lucide-react";
 import { validateImageFile, cropToSquare, MAX_IMAGE_SIZE_MB } from "@/lib/uploads";
 
 type Product = {
@@ -16,7 +16,10 @@ type Product = {
   stock: number;
   isActive: boolean;
   imageUrl: string | null;
+  imageUrls: string[];
 };
+
+const MAX_PHOTOS_PER_PRODUCT = 9;
 
 export function ProductsManager({ initialProducts }: { initialProducts: Product[] }) {
   const supabase = createClient();
@@ -24,8 +27,8 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
-  const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingFor, setUploadingFor] = useState<string | null>(null);
@@ -42,17 +45,27 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
     return data.publicUrl;
   }
 
-  async function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  function handlePhotosSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
-    const validationError = validateImageFile(file);
-    if (validationError) {
-      setError(validationError);
-      return;
+    if (files.length === 0) return;
+
+    const remaining = MAX_PHOTOS_PER_PRODUCT - photos.length;
+    const toAdd = files.slice(0, remaining);
+    for (const file of toAdd) {
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
     }
-    setPhoto(file);
-    setPhotoPreview(URL.createObjectURL(file));
+    setPhotos((prev) => [...prev, ...toAdd]);
+    setPhotoPreviews((prev) => [...prev, ...toAdd.map((f) => URL.createObjectURL(f))]);
+  }
+
+  function removeNewPhoto(index: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleAdd(e: React.FormEvent) {
@@ -65,11 +78,15 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
     }
     setSubmitting(true);
     try {
-      const imageUrl = photo ? await uploadPhoto(photo) : undefined;
+      const uploadedUrls: string[] = [];
+      for (const file of photos) {
+        uploadedUrls.push(await uploadPhoto(file));
+      }
+      const [imageUrl, ...imageUrls] = uploadedUrls;
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, price: priceNum, stock: Number(stock) || 0, imageUrl }),
+        body: JSON.stringify({ name, price: priceNum, stock: Number(stock) || 0, imageUrl, imageUrls }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -80,8 +97,8 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
       setName("");
       setPrice("");
       setStock("");
-      setPhoto(null);
-      setPhotoPreview(null);
+      setPhotos([]);
+      setPhotoPreviews([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue.");
     } finally {
@@ -89,29 +106,66 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
     }
   }
 
-  async function handleExistingPhotoSelected(id: string, e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+  async function addPhotosToProduct(id: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
-    const validationError = validateImageFile(file);
-    if (validationError) {
-      setError(validationError);
+    if (files.length === 0) return;
+
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    const currentCount = (product.imageUrl ? 1 : 0) + product.imageUrls.length;
+    const remaining = MAX_PHOTOS_PER_PRODUCT - currentCount;
+    if (remaining <= 0) {
+      setError(`Maximum ${MAX_PHOTOS_PER_PRODUCT} photos par produit.`);
       return;
     }
+    const toAdd = files.slice(0, remaining);
+    for (const file of toAdd) {
+      const validationError = validateImageFile(file);
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
     setUploadingFor(id);
     try {
-      const imageUrl = await uploadPhoto(file);
-      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, imageUrl } : p)));
+      const uploaded: string[] = [];
+      for (const file of toAdd) {
+        uploaded.push(await uploadPhoto(file));
+      }
+
+      const newImageUrl = product.imageUrl ?? uploaded[0];
+      const newImageUrls = product.imageUrl
+        ? [...product.imageUrls, ...uploaded]
+        : [...product.imageUrls, ...uploaded.slice(1)];
+
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, imageUrl: newImageUrl, imageUrls: newImageUrls } : p))
+      );
       await fetch(`/api/products/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl: newImageUrl, imageUrls: newImageUrls }),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Impossible d'ajouter cette photo.");
     } finally {
       setUploadingFor(null);
     }
+  }
+
+  async function removeProductPhoto(id: string, allPhotos: string[], index: number) {
+    const remaining = allPhotos.filter((_, i) => i !== index);
+    const [newImageUrl, ...newImageUrls] = remaining;
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, imageUrl: newImageUrl ?? null, imageUrls: newImageUrls } : p))
+    );
+    await fetch(`/api/products/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageUrl: newImageUrl ?? null, imageUrls: newImageUrls }),
+    });
   }
 
   async function toggleActive(id: string, isActive: boolean) {
@@ -132,25 +186,35 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
   return (
     <div>
       <form onSubmit={handleAdd} className="mt-6 rounded-2xl border border-beige-dark p-5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-beige-dark bg-beige">
-            {photoPreview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoPreview} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <ImagePlus size={20} className="text-noir/30" />
-            )}
-          </div>
-          <div className="flex-1">
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {photoPreviews.map((url, i) => (
+            <div key={i} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-beige-dark bg-beige">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeNewPhoto(i)}
+                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-noir/70 text-white"
+              >
+                <X size={11} />
+              </button>
+            </div>
+          ))}
+          <label className="flex h-16 w-16 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-beige-dark text-noir/40 hover:border-or hover:text-or-dark">
+            <ImagePlus size={18} />
+            <span className="text-[10px]">Photos</span>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={handlePhotoSelected}
-              className="block w-full text-sm text-noir/70 file:mr-4 file:rounded-full file:border-0 file:bg-beige file:px-4 file:py-2 file:text-sm file:font-medium file:text-noir hover:file:bg-beige-dark"
+              multiple
+              onChange={handlePhotosSelected}
+              className="sr-only"
             />
-            <p className="mt-1 text-xs text-noir/40">Photo optionnelle, {MAX_IMAGE_SIZE_MB} Mo max.</p>
-          </div>
+          </label>
         </div>
+        <p className="mt-1.5 text-xs text-noir/40">
+          Plusieurs photos possibles ({MAX_PHOTOS_PER_PRODUCT} max), {MAX_IMAGE_SIZE_MB} Mo max chacune.
+        </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
           <input
@@ -182,45 +246,57 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
       </form>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => (
-          <Card key={p.id} className={`overflow-hidden p-0 ${p.isActive ? "" : "opacity-50"}`}>
-            <label className="relative block aspect-square w-full cursor-pointer bg-beige">
-              {p.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-noir/30">
-                  <ImagePlus size={22} />
-                  <span className="text-xs">{uploadingFor === p.id ? "Envoi..." : "Ajouter une photo"}</span>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => handleExistingPhotoSelected(p.id, e)}
-                className="sr-only"
-              />
-            </label>
-            <div className="p-4">
-              <p className="font-medium text-noir">{p.name}</p>
-              <p className="mt-1 text-sm text-noir/60">{formatPrice(p.price)} · Stock : {p.stock}</p>
-              <div className="mt-3 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => toggleActive(p.id, !p.isActive)}
-                  className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                    p.isActive ? "bg-green-50 text-green-700" : "bg-neutral-100 text-neutral-500"
-                  }`}
-                >
-                  {p.isActive ? "En vente" : "Masqué"}
-                </button>
-                <button type="button" onClick={() => remove(p.id)} className="text-noir/30 hover:text-red-600">
-                  <Trash2 size={15} />
-                </button>
+        {products.map((p) => {
+          const allPhotos = [...(p.imageUrl ? [p.imageUrl] : []), ...p.imageUrls];
+          return (
+            <Card key={p.id} className={`overflow-hidden p-0 ${p.isActive ? "" : "opacity-50"}`}>
+              <div className="flex gap-1.5 overflow-x-auto bg-beige p-1.5">
+                {allPhotos.map((url, i) => (
+                  <div key={i} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={p.name} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeProductPhoto(p.id, allPhotos, i)}
+                      className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-noir/70 text-white"
+                    >
+                      <X size={11} />
+                    </button>
+                  </div>
+                ))}
+                <label className="flex h-20 w-20 shrink-0 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg border border-dashed border-beige-dark text-noir/40 hover:border-or hover:text-or-dark">
+                  {uploadingFor === p.id ? <span className="text-[10px]">Envoi...</span> : <Plus size={18} />}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={(e) => addPhotosToProduct(p.id, e)}
+                    className="sr-only"
+                    disabled={uploadingFor === p.id}
+                  />
+                </label>
               </div>
-            </div>
-          </Card>
-        ))}
+              <div className="p-4">
+                <p className="font-medium text-noir">{p.name}</p>
+                <p className="mt-1 text-sm text-noir/60">{formatPrice(p.price)} · Stock : {p.stock}</p>
+                <div className="mt-3 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(p.id, !p.isActive)}
+                    className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                      p.isActive ? "bg-green-50 text-green-700" : "bg-neutral-100 text-neutral-500"
+                    }`}
+                  >
+                    {p.isActive ? "En vente" : "Masqué"}
+                  </button>
+                  <button type="button" onClick={() => remove(p.id)} className="text-noir/30 hover:text-red-600">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
         {products.length === 0 && <p className="text-noir/40">Aucun produit pour le moment.</p>}
       </div>
     </div>

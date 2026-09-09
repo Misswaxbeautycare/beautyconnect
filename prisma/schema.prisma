@@ -430,6 +430,9 @@ model Product {
   name        String
   description String?
   imageUrl    String?
+  // Photos supplémentaires, en plus de imageUrl (qui reste la photo de
+  // couverture, pour ne rien casser des affichages existants).
+  imageUrls   String[] @default([])
   price       Decimal  @db.Decimal(10, 2)
   stock       Int      @default(0)
   isActive    Boolean  @default(true)

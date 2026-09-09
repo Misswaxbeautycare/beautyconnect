@@ -39,6 +39,7 @@ interface ProductData {
   name: string;
   price: number;
   imageUrl: string | null;
+  imageUrls: string[];
 }
 
 interface ReviewData {
