@@ -28,6 +28,7 @@ export function ProductCart({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [lightboxProduct, setLightboxProduct] = useState<ProductData | null>(null);
 
   async function shareProduct(productId: string) {
     const product = products.find((p) => p.id === productId);
@@ -137,9 +138,15 @@ export function ProductCart({
               }`}
             >
               <div className="flex min-w-0 items-center gap-3">
-                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-beige">
+                <button
+                  type="button"
+                  onClick={() => p.imageUrl && setLightboxProduct(p)}
+                  disabled={!p.imageUrl}
+                  aria-label={`Voir la photo de ${p.name} en grand`}
+                  className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-beige"
+                >
                   {p.imageUrl && <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover" />}
-                </div>
+                </button>
                 <div className="min-w-0">
                   <p className="truncate font-medium text-noir">{p.name}</p>
                   <p className="text-sm text-noir/60">{formatPrice(p.price)}</p>
@@ -288,6 +295,49 @@ export function ProductCart({
                   </button>
                 </div>
               )}
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {lightboxProduct &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[110] flex items-center justify-center bg-noir/80 p-4"
+            onClick={() => setLightboxProduct(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setLightboxProduct(null)}
+              aria-label="Fermer"
+              className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+            >
+              <X size={20} />
+            </button>
+            <div className="max-h-[85vh] max-w-lg overflow-hidden rounded-2xl bg-white" onClick={(e) => e.stopPropagation()}>
+              {lightboxProduct.imageUrl && (
+                <img
+                  src={lightboxProduct.imageUrl}
+                  alt={lightboxProduct.name}
+                  className="max-h-[70vh] w-full object-contain"
+                />
+              )}
+              <div className="flex items-center justify-between p-4">
+                <div>
+                  <p className="font-medium text-noir">{lightboxProduct.name}</p>
+                  <p className="text-sm text-noir/60">{formatPrice(lightboxProduct.price)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    addToCart(lightboxProduct.id);
+                    setLightboxProduct(null);
+                  }}
+                  className="shrink-0 rounded-full bg-or px-4 py-2 text-xs font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+                >
+                  Ajouter
+                </button>
+              </div>
             </div>
           </div>,
           document.body
