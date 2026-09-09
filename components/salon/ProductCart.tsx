@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { ShoppingBasket, Plus, Minus, X, Trash2 } from "lucide-react";
+import { ShoppingBasket, Plus, Minus, X, Trash2, Share2, Check } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 export interface ProductData {
@@ -13,12 +13,40 @@ export interface ProductData {
   imageUrl: string | null;
 }
 
-export function ProductCart({ products }: { products: ProductData[] }) {
+export function ProductCart({
+  products,
+  salonId,
+  highlightedProductId,
+}: {
+  products: ProductData[];
+  salonId: string;
+  highlightedProductId?: string | null;
+}) {
   const router = useRouter();
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function shareProduct(productId: string) {
+    const product = products.find((p) => p.id === productId);
+    const url = `${window.location.origin}/salon/${salonId}?produit=${productId}`;
+    const shareData = { title: product ? product.name : "Boutique", url };
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        return;
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(productId);
+      setTimeout(() => setCopiedId((v) => (v === productId ? null : v)), 2000);
+    }
+  }
 
   const cartItems = useMemo(
     () =>
@@ -103,7 +131,10 @@ export function ProductCart({ products }: { products: ProductData[] }) {
           return (
             <div
               key={p.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-beige-dark p-4"
+              id={`produit-${p.id}`}
+              className={`scroll-mt-24 flex items-center justify-between gap-3 rounded-2xl border p-4 transition-colors ${
+                highlightedProductId === p.id ? "border-or bg-beige" : "border-beige-dark"
+              }`}
             >
               <div className="flex min-w-0 items-center gap-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-beige">
@@ -115,35 +146,45 @@ export function ProductCart({ products }: { products: ProductData[] }) {
                 </div>
               </div>
 
-              {qty === 0 ? (
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => addToCart(p.id)}
-                  className="shrink-0 rounded-full bg-or px-4 py-2 text-xs font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+                  onClick={() => shareProduct(p.id)}
+                  aria-label={`Partager ${p.name}`}
+                  className="text-noir/30 hover:text-or-dark"
                 >
-                  Ajouter
+                  {copiedId === p.id ? <Check size={14} /> : <Share2 size={13} />}
                 </button>
-              ) : (
-                <div className="flex shrink-0 items-center gap-2 rounded-full border border-or bg-beige px-1.5 py-1">
+                {qty === 0 ? (
                   <button
                     type="button"
-                    onClick={() => changeQty(p.id, -1)}
-                    aria-label="Diminuer"
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-noir/60 hover:text-noir"
+                    onClick={() => addToCart(p.id)}
+                    className="shrink-0 rounded-full bg-or px-4 py-2 text-xs font-semibold text-noir transition hover:bg-or-dark hover:text-white"
                   >
-                    <Minus size={12} />
+                    Ajouter
                   </button>
-                  <span className="w-4 text-center text-sm font-medium text-noir">{qty}</span>
-                  <button
-                    type="button"
-                    onClick={() => changeQty(p.id, 1)}
-                    aria-label="Augmenter"
-                    className="flex h-6 w-6 items-center justify-center rounded-full text-noir/60 hover:text-noir"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-              )}
+                ) : (
+                  <div className="flex shrink-0 items-center gap-2 rounded-full border border-or bg-beige px-1.5 py-1">
+                    <button
+                      type="button"
+                      onClick={() => changeQty(p.id, -1)}
+                      aria-label="Diminuer"
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-noir/60 hover:text-noir"
+                    >
+                      <Minus size={12} />
+                    </button>
+                    <span className="w-4 text-center text-sm font-medium text-noir">{qty}</span>
+                    <button
+                      type="button"
+                      onClick={() => changeQty(p.id, 1)}
+                      aria-label="Augmenter"
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-noir/60 hover:text-noir"
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}

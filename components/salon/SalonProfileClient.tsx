@@ -124,6 +124,7 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
   const [activeTab, setActiveTab] = useState<TabKey>("apropos");
   const [preselectServiceId, setPreselectServiceId] = useState<string | null>(null);
   const [highlightedServiceId, setHighlightedServiceId] = useState<string | null>(null);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const [activeMode, setActiveMode] = useState<"SALON" | "DOMICILE" | "DEPLACEMENT">(() => {
     if (salon.services.some((s) => s.modes.includes("SALON"))) return "SALON";
     if (salon.services.some((s) => s.modes.includes("DOMICILE"))) return "DOMICILE";
@@ -226,6 +227,26 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
       document.getElementById(`prestation-${serviceId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, 150);
     const clearHighlight = setTimeout(() => setHighlightedServiceId(null), 4000);
+
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(clearHighlight);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Même principe pour un produit de la boutique partagé (?produit=xxx)
+  useEffect(() => {
+    const productId = searchParams.get("produit");
+    if (!productId || !salon.products.some((p) => p.id === productId)) return;
+
+    setActiveTab("prestations");
+    setHighlightedProductId(productId);
+
+    const timeout = setTimeout(() => {
+      document.getElementById(`produit-${productId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 150);
+    const clearHighlight = setTimeout(() => setHighlightedProductId(null), 4000);
 
     return () => {
       clearTimeout(timeout);
@@ -451,7 +472,13 @@ export function SalonProfileClient({ salon }: { salon: SalonProfileData }) {
                 </div>
               ))}
 
-              {salon.products.length > 0 && <ProductCart products={salon.products} />}
+              {salon.products.length > 0 && (
+                <ProductCart
+                  products={salon.products}
+                  salonId={salon.id}
+                  highlightedProductId={highlightedProductId}
+                />
+              )}
             </div>
 
             {/* Équipe */}
