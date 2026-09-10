@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Plus, X } from "lucide-react";
+import { RequestReviewButton } from "@/components/pro/RequestReviewButton";
 
 type Contact = {
   id: string;
@@ -106,20 +107,23 @@ export function ContactsManager({ initialContacts }: { initialContacts: Contact[
       ) : (
         <div className="mt-4 space-y-2">
           {contacts.map((c) => (
-            <Card key={c.id} className="flex items-center justify-between p-4">
-              <div>
+            <Card key={c.id} className="flex items-center justify-between gap-2 p-4">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-noir">{c.name}</p>
                 <p className="text-xs text-noir/50">
                   {[c.phone, c.email].filter(Boolean).join(" · ") || "Aucune coordonnée"}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => remove(c.id)}
-                className="text-noir/30 hover:text-red-600"
-              >
-                <X size={16} />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {c.phone && <RequestReviewButton phone={c.phone} />}
+                <button
+                  type="button"
+                  onClick={() => remove(c.id)}
+                  className="text-noir/30 hover:text-red-600"
+                >
+                  <X size={16} />
+                </button>
+              </div>
             </Card>
           ))}
         </div>

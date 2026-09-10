@@ -115,7 +115,7 @@ export default async function AgendaPage() {
                   </p>
                   <p className="text-xs text-noir/50">{b.service.name} · {formatDate(b.date)}</p>
                 </div>
-                <RequestReviewButton />
+                <RequestReviewButton phone={b.client?.phone ?? b.guestPhone} />
               </Card>
             ))}
           </div>
@@ -185,7 +185,7 @@ export default async function AgendaPage() {
                       </span>
                       {needsPaymentNudge && <PaymentLinkButton bookingId={b.id} />}
                       {email && <SendReminderButton bookingId={b.id} />}
-                      {b.client && <RequestReviewButton />}
+                      {b.client && <RequestReviewButton phone={phone} />}
                     </div>
                   </Card>
                 );
