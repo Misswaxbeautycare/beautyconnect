@@ -68,6 +68,53 @@ async function envoyerRappel(
   }
 }
 
+async function envoyerDemandeAvis(booking: {
+  id: string;
+  salonId: string;
+  guestEmail: string | null;
+  guestName: string | null;
+  client: { id: string; email: string; firstName: string; lastName: string } | null;
+  service: { name: string };
+  salon: { name: string };
+}) {
+  const email = booking.client?.email ?? booking.guestEmail;
+  const nom = booking.client?.firstName ?? booking.guestName ?? "";
+  if (!email) return;
+
+  const reviewUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://beautyconnect-nine.vercel.app"}/client/dashboard`;
+
+  await getResend().emails.send({
+    from: "BeautyConnect <avis@mail.misswaxbeautycare.com>",
+    to: email,
+    subject: `Comment s'est passée votre visite chez ${booking.salon.name} ?`,
+    html: `
+      <p>Bonjour ${nom},</p>
+      <p>Merci d'avoir choisi <strong>${booking.salon.name}</strong> pour votre prestation "${booking.service.name}".</p>
+      <p>Votre avis compte beaucoup — pourriez-vous prendre une minute pour le partager ?</p>
+      <p><a href="${reviewUrl}" style="display:inline-block;padding:10px 20px;background:#D4A24A;color:#0A0A0A;text-decoration:none;border-radius:999px;font-weight:600;">Laisser mon avis</a></p>
+      <p>Et si vous avez aimé votre expérience, ${booking.salon.name} sera ravi de vous revoir bientôt !</p>
+      <p style="color:#999;font-size:12px;">BeautyConnect — Trouvez. Réservez. Rayonnez.</p>
+    `,
+  });
+
+  if (booking.client) {
+    await prisma.notification.create({
+      data: {
+        userId: booking.client.id,
+        bookingId: booking.id,
+        type: "REVIEW_REQUEST",
+        title: "Votre avis compte",
+        message: `Comment s'est passée votre visite chez ${booking.salon.name} ?`,
+      },
+    });
+    sendPushToUser(booking.client.id, {
+      title: "Votre avis compte",
+      body: `Comment s'est passée votre visite chez ${booking.salon.name} ?`,
+      url: "/client/dashboard",
+    });
+  }
+}
+
 // Ce cron ne tourne qu'une fois par jour (contrainte du plan Vercel actuel :
 // impossible de viser une fenêtre précise du type "exactement 2h avant").
 // On envoie donc deux rappels fiables à chaque exécution quotidienne :
@@ -101,6 +148,18 @@ export async function GET(req: NextRequest) {
     include: { client: true, service: true, salon: true },
   });
 
+  // Demande d'avis automatique : rendez-vous d'hier, sans avis, jamais relancés
+  const hier = addDays(maintenant, -1);
+  const bookingsPourAvis = await prisma.booking.findMany({
+    where: {
+      date: { gte: startOfDay(hier), lte: endOfDay(hier) },
+      status: "CONFIRMED",
+      review: null,
+      notifications: { none: { type: "REVIEW_REQUEST" } },
+    },
+    include: { client: true, service: true, salon: true },
+  });
+
   let envoyes = 0;
 
   for (const booking of bookingsDemain) {
@@ -110,6 +169,11 @@ export async function GET(req: NextRequest) {
 
   for (const booking of bookingsAujourdhui) {
     await envoyerRappel(booking, "BOOKING_REMINDER_2H", "aujourd'hui");
+    envoyes++;
+  }
+
+  for (const booking of bookingsPourAvis) {
+    await envoyerDemandeAvis(booking);
     envoyes++;
   }
 
