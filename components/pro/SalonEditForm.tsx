@@ -185,6 +185,9 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.error ?? "Une erreur est survenue.");
+        setTimeout(() => {
+          document.getElementById("salon-edit-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
         return;
       }
 
@@ -193,6 +196,9 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
     } catch (err) {
       setUploading(false);
       setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setTimeout(() => {
+        document.getElementById("salon-edit-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
     }
   }
 
@@ -423,7 +429,11 @@ export function SalonEditForm({ categories, maxPhotos, salon }: SalonEditFormPro
         />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p id="salon-edit-error" className="rounded-xl border-2 border-red-400 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          ⚠️ {error}
+        </p>
+      )}
 
       <Button type="submit" disabled={isSubmitting || uploading} className="w-full">
         {uploading ? "Envoi des photos..." : isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
