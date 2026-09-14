@@ -155,6 +155,7 @@ model Salon {
   teamMembers    TeamMember[]
   bookings       Booking[]
   visits         SalonVisit[]
+  blockedSlots   BlockedSlot[]
   reviews        Review[]
   favorites      Favorite[]
   products       Product[]
@@ -228,6 +229,22 @@ model SalonVisit {
 
   @@index([salonId, createdAt])
   @@map("salon_visits")
+}
+
+// Plage horaire que le professionnel bloque manuellement (vacances, absence,
+// pause...) sans que ça corresponde à un vrai rendez-vous — empêche toute
+// réservation sur ce créneau au même titre qu'un Booking existant.
+model BlockedSlot {
+  id          String   @id @default(uuid())
+  salonId     String
+  salon       Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  date        DateTime
+  durationMin Int
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([salonId, date])
+  @@map("blocked_slots")
 }
 
 // Abonnement push d'un appareil précis — une personne peut en avoir

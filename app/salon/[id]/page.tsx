@@ -66,6 +66,10 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           where: { status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
           select: { date: true, durationMin: true },
         },
+        blockedSlots: {
+          where: { date: { gte: new Date() } },
+          select: { date: true, durationMin: true },
+        },
       },
     }),
     getCurrentDbUser(),
@@ -200,10 +204,16 @@ export default async function SalonPage({ params }: { params: Promise<{ id: stri
           role: m.role,
           photoUrl: m.photoUrl,
         })),
-        bookedSlots: salon.bookings.map((b: (typeof salon.bookings)[number]) => ({
-          start: b.date.toISOString(),
-          durationMin: b.durationMin,
-        })),
+        bookedSlots: [
+          ...salon.bookings.map((b: (typeof salon.bookings)[number]) => ({
+            start: b.date.toISOString(),
+            durationMin: b.durationMin,
+          })),
+          ...salon.blockedSlots.map((b: (typeof salon.blockedSlots)[number]) => ({
+            start: b.date.toISOString(),
+            durationMin: b.durationMin,
+          })),
+        ],
         onlinePayment: plan.onlinePayment,
         isFavorited,
       }}

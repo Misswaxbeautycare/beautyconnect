@@ -91,6 +91,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Même vérification pour les créneaux que le pro a bloqués manuellement
+  // (absence, vacances...) — pas de vrai rendez-vous mais tout aussi bloquant.
+  const blockedConflict = await prisma.blockedSlot.findFirst({
+    where: { salonId, date: { lt: endDate } },
+  });
+  if (blockedConflict) {
+    const blockedEnd = new Date(blockedConflict.date.getTime() + blockedConflict.durationMin * 60000);
+    if (blockedEnd > startDate) {
+      return NextResponse.json({ error: "Le professionnel n'est pas disponible sur ce créneau." }, { status: 409 });
+    }
+  }
+
   const additionalServicesData = additionalServices.map((s: typeof service) => ({
     serviceId: s.id,
     price: s.price,

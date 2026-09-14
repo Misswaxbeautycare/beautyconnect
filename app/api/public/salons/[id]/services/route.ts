@@ -7,13 +7,17 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const [servicesRaw, bookingsRaw] = await Promise.all([
+  const [servicesRaw, bookingsRaw, blockedSlotsRaw] = await Promise.all([
     prisma.service.findMany({
       where: { salonId: id, isActive: true },
       orderBy: { name: "asc" },
     }),
     prisma.booking.findMany({
       where: { salonId: id, status: { in: ["CONFIRMED", "PENDING"] }, date: { gte: new Date() } },
+      select: { date: true, durationMin: true },
+    }),
+    prisma.blockedSlot.findMany({
+      where: { salonId: id, date: { gte: new Date() } },
       select: { date: true, durationMin: true },
     }),
   ]);
@@ -26,10 +30,16 @@ export async function GET(
     depositPct: s.depositPct,
   }));
 
-  const bookedSlots = bookingsRaw.map((b: { date: Date; durationMin: number }) => ({
-    start: b.date.toISOString(),
-    durationMin: b.durationMin,
-  }));
+  const bookedSlots = [
+    ...bookingsRaw.map((b: { date: Date; durationMin: number }) => ({
+      start: b.date.toISOString(),
+      durationMin: b.durationMin,
+    })),
+    ...blockedSlotsRaw.map((b: { date: Date; durationMin: number }) => ({
+      start: b.date.toISOString(),
+      durationMin: b.durationMin,
+    })),
+  ];
 
   return NextResponse.json({ services, bookedSlots });
 }

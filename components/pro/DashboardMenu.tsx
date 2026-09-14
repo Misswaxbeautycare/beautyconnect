@@ -21,6 +21,7 @@ const sections: MenuSection[] = [
     links: [
       { href: "/pro/salon/modifier", label: "Modifier mon salon" },
       { href: "/pro/horaires", label: "Horaires d'ouverture" },
+      { href: "/pro/indisponibilites", label: "Mes indisponibilités" },
     ],
   },
   {
