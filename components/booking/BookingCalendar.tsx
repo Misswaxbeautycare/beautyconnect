@@ -19,11 +19,17 @@ interface Service {
   modes: string[];
 }
 
+interface BookedSlot {
+  start: string;
+  durationMin: number;
+}
+
 interface BookingCalendarProps {
   salonId: string;
   services: Service[];
-  // créneaux déjà réservés — récupérés côté serveur, format ISO
-  bookedSlots: string[];
+  // créneaux déjà réservés — récupérés côté serveur, avec leur durée pour
+  // détecter les chevauchements (pas seulement l'heure de début exacte)
+  bookedSlots: BookedSlot[];
   onlinePayment: boolean;
   openHour?: number;
   closeHour?: number;
@@ -111,7 +117,16 @@ export function BookingCalendar({
 
   const days = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(new Date()), i)), []);
 
-  const bookedSet = useMemo(() => new Set(bookedSlots), [bookedSlots]);
+  // Intervalles [début, fin] de chaque rendez-vous déjà pris — permet de
+  // détecter un chevauchement, pas seulement une heure de début identique.
+  const bookedRanges = useMemo(
+    () =>
+      bookedSlots.map((b) => {
+        const start = new Date(b.start).getTime();
+        return { start, end: start + b.durationMin * 60_000 };
+      }),
+    [bookedSlots]
+  );
 
   // Le calendrier se met à jour automatiquement selon le jour et la durée totale choisie
   const slots = useMemo(() => {
@@ -121,11 +136,16 @@ export function BookingCalendar({
     for (let h = openHour; h < closeHour; h++) {
       for (let m = 0; m < 60; m += stepMin) {
         const slot = setMinutes(setHours(selectedDay, h), m);
-        if (!bookedSet.has(slot.toISOString())) result.push(slot);
+        const slotStart = slot.getTime();
+        const slotEnd = slotStart + totalDuration * 60_000;
+        // Un créneau n'est proposé que s'il ne chevauche aucun rendez-vous
+        // existant sur toute sa durée (pas juste son heure de départ).
+        const overlaps = bookedRanges.some((r) => slotStart < r.end && slotEnd > r.start);
+        if (!overlaps) result.push(slot);
       }
     }
     return result;
-  }, [selectedDay, selectedServices.length, bookedSet, openHour, closeHour]);
+  }, [selectedDay, selectedServices.length, totalDuration, bookedRanges, openHour, closeHour]);
 
   async function confirmBooking(paymentType: "DEPOSIT" | "FULL" | "ON_SITE") {
     if (selectedServices.length === 0 || !selectedSlot) return;

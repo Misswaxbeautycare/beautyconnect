@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -34,6 +34,7 @@ export function QuickBookingModal({
 
   const [salons, setSalons] = useState<Salon[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<{ start: string; durationMin: number }[]>([]);
   const [salonId, setSalonId] = useState(fixedSalonId ?? "");
   const [serviceIds, setServiceIds] = useState<string[]>([]);
   const [date, setDate] = useState("");
@@ -79,11 +80,28 @@ export function QuickBookingModal({
     setServiceIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
-  // Liste de créneaux fixes toutes les 30 minutes, comme sur la page du salon.
+  // Liste de créneaux fixes toutes les 30 minutes, comme sur la page du salon
+  // — on retire ceux qui chevauchent un rendez-vous déjà pris ce jour-là.
+  const bookedRanges = useMemo(
+    () =>
+      bookedSlots.map((b) => {
+        const start = new Date(b.start).getTime();
+        return { start, end: start + b.durationMin * 60_000 };
+      }),
+    [bookedSlots]
+  );
   const timeSlots: string[] = [];
   for (let h = 9; h < 18; h++) {
-    timeSlots.push(`${String(h).padStart(2, "0")}:00`);
-    timeSlots.push(`${String(h).padStart(2, "0")}:30`);
+    for (const m of [0, 30]) {
+      const label = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      if (date) {
+        const slotStart = new Date(`${date}T${label}:00`).getTime();
+        const slotEnd = slotStart + totalDuration * 60_000;
+        const overlaps = bookedRanges.some((r) => slotStart < r.end && slotEnd > r.start);
+        if (overlaps) continue;
+      }
+      timeSlots.push(label);
+    }
   }
 
   useEffect(() => {
@@ -97,11 +115,15 @@ export function QuickBookingModal({
     if (!salonId) {
       setServices([]);
       setServiceIds([]);
+      setBookedSlots([]);
       return;
     }
     fetch(`/api/public/salons/${salonId}/services`)
       .then((r) => r.json())
-      .then((d) => setServices(d.services ?? []));
+      .then((d) => {
+        setServices(d.services ?? []);
+        setBookedSlots(d.bookedSlots ?? []);
+      });
   }, [salonId]);
 
   useEffect(() => {

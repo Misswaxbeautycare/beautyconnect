@@ -89,7 +89,7 @@ export interface SalonProfileData {
   reviews: ReviewData[];
   openingHours: OpeningHourData[];
   teamMembers: TeamMemberData[];
-  bookedSlots: string[];
+  bookedSlots: { start: string; durationMin: number }[];
   onlinePayment: boolean;
   isFavorited: boolean;
 }
