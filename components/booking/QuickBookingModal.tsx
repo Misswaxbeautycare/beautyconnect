@@ -81,7 +81,8 @@ export function QuickBookingModal({
   }
 
   // Liste de créneaux fixes toutes les 30 minutes, comme sur la page du salon
-  // — on retire ceux qui chevauchent un rendez-vous déjà pris ce jour-là.
+  // — ceux qui chevauchent un rendez-vous déjà pris restent visibles mais
+  // marqués indisponibles, plutôt que de disparaître.
   const bookedRanges = useMemo(
     () =>
       bookedSlots.map((b) => {
@@ -90,17 +91,17 @@ export function QuickBookingModal({
       }),
     [bookedSlots]
   );
-  const timeSlots: string[] = [];
+  const timeSlots: { label: string; available: boolean }[] = [];
   for (let h = 9; h < 18; h++) {
     for (const m of [0, 30]) {
       const label = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+      let available = true;
       if (date) {
         const slotStart = new Date(`${date}T${label}:00`).getTime();
         const slotEnd = slotStart + totalDuration * 60_000;
-        const overlaps = bookedRanges.some((r) => slotStart < r.end && slotEnd > r.start);
-        if (overlaps) continue;
+        available = !bookedRanges.some((r) => slotStart < r.end && slotEnd > r.start);
       }
-      timeSlots.push(label);
+      timeSlots.push({ label, available });
     }
   }
 
@@ -360,16 +361,20 @@ export function QuickBookingModal({
             <div className="mt-2 flex flex-wrap gap-2">
               {timeSlots.map((slot) => (
                 <button
-                  key={slot}
+                  key={slot.label}
                   type="button"
-                  onClick={() => setTime(slot)}
+                  disabled={!slot.available}
+                  onClick={() => slot.available && setTime(slot.label)}
+                  title={slot.available ? undefined : "Ce créneau est déjà réservé"}
                   className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-                    time === slot
+                    !slot.available
+                      ? "cursor-not-allowed border-beige-dark bg-beige text-noir/30 line-through"
+                      : time === slot.label
                       ? "border-or bg-or text-noir"
                       : "border-beige-dark text-noir/70 hover:border-or"
                   }`}
                 >
-                  {slot.replace(":", "h")}
+                  {slot.label.replace(":", "h")}
                 </button>
               ))}
             </div>

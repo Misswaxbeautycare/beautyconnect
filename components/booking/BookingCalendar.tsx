@@ -128,20 +128,22 @@ export function BookingCalendar({
     [bookedSlots]
   );
 
-  // Le calendrier se met à jour automatiquement selon le jour et la durée totale choisie
+  // Le calendrier se met à jour automatiquement selon le jour et la durée totale choisie.
+  // Les créneaux déjà pris restent visibles (grisés) au lieu de disparaître,
+  // pour que ce soit clair qu'ils sont indisponibles plutôt que de sembler manquants.
   const slots = useMemo(() => {
     if (selectedServices.length === 0) return [];
-    const result: Date[] = [];
+    const result: { time: Date; available: boolean }[] = [];
     const stepMin = 30;
     for (let h = openHour; h < closeHour; h++) {
       for (let m = 0; m < 60; m += stepMin) {
         const slot = setMinutes(setHours(selectedDay, h), m);
         const slotStart = slot.getTime();
         const slotEnd = slotStart + totalDuration * 60_000;
-        // Un créneau n'est proposé que s'il ne chevauche aucun rendez-vous
-        // existant sur toute sa durée (pas juste son heure de départ).
+        // Un créneau est indisponible s'il chevauche un rendez-vous existant
+        // sur toute sa durée (pas juste son heure de départ).
         const overlaps = bookedRanges.some((r) => slotStart < r.end && slotEnd > r.start);
-        if (!overlaps) result.push(slot);
+        result.push({ time: slot, available: !overlaps });
       }
     }
     return result;
@@ -376,16 +378,21 @@ export function BookingCalendar({
             <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-6">
               {slots.map((slot) => (
                 <button
-                  key={slot.toISOString()}
-                  onClick={() => setSelectedSlot(slot)}
+                  key={slot.time.toISOString()}
+                  disabled={!slot.available}
+                  onClick={() => slot.available && setSelectedSlot(slot.time)}
+                  title={slot.available ? undefined : "Ce créneau est déjà réservé"}
                   className={cn(
-                    "rounded-lg border px-2 py-2 text-xs",
-                    selectedSlot?.getTime() === slot.getTime()
+                    "flex flex-col items-center rounded-lg border px-2 py-2 text-xs",
+                    !slot.available
+                      ? "cursor-not-allowed border-beige-dark bg-beige text-noir/30 line-through"
+                      : selectedSlot?.getTime() === slot.time.getTime()
                       ? "border-or bg-or text-noir"
                       : "border-beige-dark text-noir/70 hover:border-or"
                   )}
                 >
-                  {format(slot, "HH:mm")}
+                  {format(slot.time, "HH:mm")}
+                  {!slot.available && <span className="text-[9px] no-underline">Pris</span>}
                 </button>
               ))}
               {slots.length === 0 && (
