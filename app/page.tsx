@@ -149,7 +149,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href="/pro/inscription"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-4 text-base font-semibold text-noir transition hover:bg-or-dark hover:text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-or bg-white px-8 py-4 text-base font-semibold text-or-dark transition hover:bg-or hover:text-noir active:bg-or active:text-noir"
             >
               Je suis un professionnel
               <ArrowUpRight size={18} />
