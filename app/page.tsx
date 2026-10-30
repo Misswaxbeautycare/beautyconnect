@@ -7,7 +7,14 @@ import { getEffectivePlan } from "@/lib/subscription-plans";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { getCurrentDbUser } from "@/lib/auth";
 
-const heroServices = ["Coiffure", "Esthétique", "Onglerie", "Spa", "Massage"];
+const heroServices = [
+  { label: "Coiffure", slug: "coiffeur" },
+  { label: "Beauté afro", slug: "beaute-afro" },
+  { label: "Esthétique", slug: "estheticienne" },
+  { label: "Maquillage", slug: "maquilleur" },
+  { label: "Onglerie", slug: "onglerie" },
+  { label: "Massage", slug: "massage" },
+];
 
 async function getRecommandes(): Promise<SalonCardData[]> {
   try {
@@ -81,70 +88,81 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative overflow-hidden bg-white px-6 py-20">
-        <div className="relative mx-auto max-w-3xl text-center">
-          <p className="mb-4 text-xs font-semibold tracking-[0.2em] text-noir/40">
+      <section className="relative overflow-hidden bg-white px-6 pb-16 pt-12 sm:pb-24 sm:pt-20">
+        <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 h-[28rem] w-[28rem] rounded-full bg-beige" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-48 -left-32 h-[22rem] w-[22rem] rounded-full bg-beige/70" />
+        <div className="relative mx-auto max-w-5xl">
+          <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-beige-dark bg-white px-4 py-1.5 text-xs font-semibold tracking-[0.18em] text-noir/70">
+            <span className="h-1.5 w-1.5 rounded-full bg-or" />
             BEAUTÉ · BIEN-ÊTRE · STYLE
           </p>
-          <h1 className="mb-5 font-display text-3xl leading-[1.1] text-noir sm:text-4xl md:text-5xl">
-            Trouvez. Réservez.{" "}
-            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
-              Rayonnez.
-            </span>
+          <h1 className="mb-6 font-display text-[3.4rem] font-bold leading-[0.98] tracking-tight text-noir sm:text-7xl md:text-8xl">
+            Trouvez.
+            <br />
+            Réservez.
+            <br />
+            <span className="text-or-dark">Rayonnez.</span>
           </h1>
-          <p className="mx-auto mb-6 max-w-md text-noir/60">
-            Trouvez et réservez votre professionnel beauté préféré, où que vous soyez.
+          <p className="mb-8 max-w-2xl text-lg leading-relaxed text-noir/70 sm:text-xl">
+            Coiffure, esthétique, ongles, massage : trouvez les meilleurs professionnels de la beauté près de chez vous et réservez en quelques secondes, 24 h/24.
           </p>
-
-          <div className="mb-8 flex flex-wrap justify-center gap-2">
-            {heroServices.map((s) => (
-              <span
-                key={s}
-                className="rounded-full border border-beige-dark bg-beige px-3.5 py-1.5 text-xs font-medium text-noir/70"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
 
           <form
             action="/recherche"
-            className="mx-auto mb-8 flex max-w-lg items-center gap-2 rounded-full border border-beige-dark bg-white py-1.5 pl-5 pr-1.5 shadow-lg shadow-noir/5"
+            className="mb-5 flex max-w-2xl items-center gap-2 rounded-full border border-beige-dark bg-white py-2 pl-5 pr-2 shadow-xl shadow-noir/10"
           >
-            <Search size={18} className="shrink-0 text-noir/40" />
+            <Search size={20} className="shrink-0 text-noir/40" />
             <input
               type="text"
               name="q"
-              placeholder="Recherchez tous les soins"
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-noir/40"
+              placeholder="Un soin, un salon, une ville…"
+              className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-noir/40"
             />
             <button
               type="submit"
               aria-label="Rechercher"
-              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-or px-4 py-3 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white sm:px-6"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-noir px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-or hover:text-noir sm:px-7"
             >
-              <Search size={16} className="sm:hidden" />
+              <Search size={18} className="sm:hidden" />
               <span className="hidden sm:inline">Rechercher</span>
             </button>
           </form>
 
-          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mb-10 flex flex-wrap gap-2">
+            {heroServices.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/recherche?categorie=${s.slug}`}
+                className="rounded-full border border-beige-dark bg-beige px-4 py-2 text-sm font-medium text-noir/80 transition hover:border-or hover:bg-white"
+              >
+                {s.label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/recherche"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-noir px-8 py-3.5 font-semibold text-white transition hover:bg-or hover:text-noir"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-4 text-base font-semibold text-noir shadow-lg shadow-or/30 transition hover:bg-or-dark hover:text-white"
             >
               Trouver un professionnel
             </Link>
             <Link
               href="/pro/inscription"
-              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir px-8 py-3.5 font-semibold text-noir transition hover:bg-noir hover:text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir px-8 py-4 text-base font-semibold text-noir transition hover:bg-noir hover:text-white"
             >
               Je suis un professionnel
-              <ArrowUpRight size={16} />
+              <ArrowUpRight size={18} />
             </Link>
           </div>
 
-          <div className="mt-4 flex justify-center">
+          <ul className="mt-10 grid gap-4 text-sm text-noir/70 sm:grid-cols-3">
+            <li className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-beige text-or-dark"><CalendarCheck size={18} /></span>Réservation confirmée en quelques secondes</li>
+            <li className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-beige text-or-dark"><ShieldCheck size={18} /></span>Paiement sécurisé</li>
+            <li className="flex items-center gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-beige text-or-dark"><MessageSquareText size={18} /></span>Rappel avant votre rendez-vous</li>
+          </ul>
+
+          <div className="mt-8">
             <InstallAppButton />
           </div>
         </div>
