@@ -20,5 +20,5 @@ export default async function PromotionsPage() {
   const scheduled = campaigns.filter((c: { kind: string }) => c.kind === "PROGRAMMEE");
   const ser = (c: (typeof campaigns)[number]) => ({ id: c.id, discountPct: c.discountPct, service: c.service, code: c.code, dayOfMonth: c.dayOfMonth, validDays: c.validDays,
     isActive: c.isActive, sendDate: c.sendDate?.toISOString() || null, endDate: c.endDate?.toISOString() || null, lastSentAt: c.lastSentAt?.toISOString() || null, sentCount: c.sentCount });
-  return <PromoManager recipients={recipients.length} monthly={monthly ? ser(monthly) : null} scheduled={scheduled.map(ser)} />;
+  return <PromoManager ownerEmail={u.email} recipients={recipients.length} monthly={monthly ? ser(monthly) : null} scheduled={scheduled.map(ser)} />;
 }

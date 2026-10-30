@@ -9,7 +9,8 @@ const input = "w-full rounded-xl border border-beige-dark bg-white px-4 py-3 tex
 const btn = "rounded-full bg-or px-6 py-3 font-semibold text-noir transition hover:bg-or-dark hover:text-white active:bg-or-dark active:text-white disabled:opacity-50";
 const btn2 = "rounded-full border-2 border-or bg-white px-6 py-3 font-semibold text-or-dark transition hover:bg-or hover:text-noir active:bg-or active:text-noir";
 
-export default function PromoManager({ recipients, monthly, scheduled }: { recipients: number; monthly: C | null; scheduled: C[] }) {
+export default function PromoManager({ ownerEmail, recipients, monthly, scheduled }: { ownerEmail: string; recipients: number; monthly: C | null; scheduled: C[] }) {
+  const [testTo, setTestTo] = useState(ownerEmail);
   const [msg, setMsg] = useState<{ t: string; err?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
   const run = async (p: Promise<{ ok?: string; error?: string }>) => { setBusy(true); const r = await p; setBusy(false); setMsg(r.error ? { t: r.error, err: true } : { t: r.ok || "C’est fait." }); };
@@ -21,6 +22,13 @@ export default function PromoManager({ recipients, monthly, scheduled }: { recip
       <h1 className="mt-3 font-display text-4xl font-bold text-noir">Promotions</h1>
       <p className="mt-2 text-noir/70">Envoyez une réduction par email à vos anciennes clientes. Vous choisissez seulement le pourcentage et la date.</p>
       <p className="mt-4 inline-block rounded-full bg-beige px-4 py-2 text-sm font-medium text-noir/80">📬 {recipients} cliente{recipients > 1 ? "s" : ""} recevr{recipients > 1 ? "ont" : "a"} vos offres</p>
+
+      <div className="mt-6 rounded-2xl border border-beige-dark bg-white p-4">
+        <label className="grid gap-1.5 text-sm font-medium">📧 Envoyer les emails de test à
+          <input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="ton@email.com" className={input} />
+        </label>
+        <p className="mt-1.5 text-xs text-noir/50">Mets l’adresse où tu veux recevoir l’aperçu, puis clique sur « M’envoyer un test » plus bas.</p>
+      </div>
 
       {msg && <p className={`mt-5 rounded-xl px-4 py-3 text-sm ${msg.err ? "bg-red-50 text-red-800" : "bg-green-50 text-green-800"}`}>{msg.t}</p>}
 
@@ -40,7 +48,7 @@ export default function PromoManager({ recipients, monthly, scheduled }: { recip
           <label className="flex items-center gap-3 text-sm font-medium"><input type="checkbox" name="active" defaultChecked={monthly?.isActive ?? true} className="h-5 w-5 accent-[#D4A24A]" />Promo mensuelle activée</label>
           <div className="flex flex-wrap gap-3">
             <button className={btn} disabled={busy}>Enregistrer</button>
-            {monthly && <button type="button" className={btn2} disabled={busy} onClick={() => run(sendTest(monthly.id))}>M’envoyer un test</button>}
+            {monthly && <button type="button" className={btn2} disabled={busy} onClick={() => run(sendTest(monthly.id, testTo))}>M’envoyer un test</button>}
           </div>
           {monthly && <p className="text-xs text-noir/50">Code envoyé : <b>{monthly.code}</b>{monthly.lastSentAt ? ` · Dernier envoi le ${d(monthly.lastSentAt)} · ${monthly.sentCount} emails envoyés au total` : " · Pas encore envoyée"}</p>}
         </form>
@@ -67,7 +75,7 @@ export default function PromoManager({ recipients, monthly, scheduled }: { recip
               <div><p className="font-semibold">-{c.discountPct} % sur {c.service} <span className="text-noir/50">· code {c.code}</span></p>
                 <p className="text-sm text-noir/60">{c.lastSentAt ? `✅ Envoyée le ${d(c.lastSentAt)} à ${c.sentCount} clientes` : `⏳ Envoi le ${d(c.sendDate)}`} · valable jusqu’au {d(c.endDate)}</p></div>
               <div className="flex gap-2">
-                <button className="text-sm font-semibold text-or-dark hover:underline" disabled={busy} onClick={() => run(sendTest(c.id))}>Test</button>
+                <button className="text-sm font-semibold text-or-dark hover:underline" disabled={busy} onClick={() => run(sendTest(c.id, testTo))}>Test</button>
                 {!c.lastSentAt && <button className="text-sm font-semibold text-red-700 hover:underline" disabled={busy} onClick={() => run(deletePromo(c.id))}>Supprimer</button>}
               </div>
             </li>))}

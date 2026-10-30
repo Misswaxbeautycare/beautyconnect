@@ -44,10 +44,12 @@ export async function deletePromo(id: string) {
   revalidatePath("/pro/promotions"); return { ok: "Promo supprimée." };
 }
 
-export async function sendTest(id: string) {
+export async function sendTest(id: string, to?: string) {
   const salon = await mySalon(); if (!salon) return { error: "Session expirée." };
   const c = await prisma.promoCampaign.findFirst({ where: { id, salonId: salon.id } });
   if (!c) return { error: "Enregistre d’abord la promo." };
-  const r = await sendCampaign(c.id, salon.owner.email);
-  return r.error ? { error: r.error } : { ok: `Email de test envoyé à ${salon.owner.email}. Regarde aussi dans tes spams.` };
+  const email = (to || "").trim() || salon.owner.email;
+  if (!/^\S+@\S+\.\S+$/.test(email)) return { error: "Adresse email invalide." };
+  const r = await sendCampaign(c.id, email);
+  return r.error ? { error: r.error } : { ok: `Email de test envoyé à ${email}. Regarde aussi dans tes spams.` };
 }
