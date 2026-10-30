@@ -72,19 +72,21 @@ export async function sendCampaign(campaignId: string, onlyTo?: string) {
     };
   });
   let sent = 0;
+  let lastError = "";
   // Envoi groupé par paquets de 100 (limite de Resend), avec une petite pause entre les paquets
   for (let i = 0; i < emails.length; i += 100) {
     const chunk = emails.slice(i, i + 100);
     try {
       const { error } = await getResend().batch.send(chunk);
-      if (error) console.error("[promo] envoi groupé refusé", error); else sent += chunk.length;
+      if (error) { console.error("[promo] envoi groupé refusé", error); lastError = error.message || String(error); } else sent += chunk.length;
     } catch (e) {
-      console.error("[promo] envoi impossible", e);
+      console.error("[promo] envoi impossible", e); lastError = (e as Error).message || "Erreur inconnue";
     }
     if (i + 100 < emails.length) await new Promise((res) => setTimeout(res, 600));
   }
   if (!onlyTo) await prisma.promoCampaign.update({ where: { id: c.id }, data: { lastSentAt: new Date(), sentCount: { increment: sent }, ...(c.kind === "PROGRAMMEE" ? { isActive: false } : {}) } });
-  return { sent };
+  if (onlyTo && sent === 0) return { sent, error: `Resend a refusé l’envoi : ${lastError || "raison inconnue"}` };
+  return { sent, error: sent === 0 && lastError ? lastError : undefined };
 }
 
 // Appelée chaque jour par le cron : envoie les campagnes dont c'est le moment

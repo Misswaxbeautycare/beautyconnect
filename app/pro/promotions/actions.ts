@@ -49,5 +49,5 @@ export async function sendTest(id: string) {
   const c = await prisma.promoCampaign.findFirst({ where: { id, salonId: salon.id } });
   if (!c) return { error: "Enregistre d’abord la promo." };
   const r = await sendCampaign(c.id, salon.owner.email);
-  return r.error ? { error: r.error } : { ok: `Email de test envoyé à ${salon.owner.email}.` };
+  return r.error ? { error: r.error } : { ok: `Email de test envoyé à ${salon.owner.email}. Regarde aussi dans tes spams.` };
 }
