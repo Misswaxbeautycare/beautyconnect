@@ -40,3 +40,6 @@ textarea {
 .promo-track { animation: promo-scroll 40s linear infinite; }
 .promo-banner:hover .promo-track { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .promo-track { animation: none; } }
+.product-track { animation: promo-scroll 60s linear infinite; }
+.promo-banner:hover .product-track, .product-track:focus-within { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .product-track { animation: none; } }

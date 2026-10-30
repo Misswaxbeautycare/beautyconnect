@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice } from "@/lib/utils";
-import { Trash2, ImagePlus, X, Plus } from "lucide-react";
+import { Trash2, ImagePlus, X, Plus, Pencil } from "lucide-react";
 import { validateImageFile, cropToSquare, MAX_IMAGE_SIZE_MB } from "@/lib/uploads";
 
 type Product = {
@@ -24,6 +24,25 @@ const MAX_PHOTOS_PER_PRODUCT = 9;
 export function ProductsManager({ initialProducts }: { initialProducts: Product[] }) {
   const supabase = createClient();
   const [products, setProducts] = useState(initialProducts);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [edit, setEdit] = useState({ name: "", price: "", stock: "", description: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  function startEdit(p: Product) {
+    setEditId(p.id);
+    setEdit({ name: p.name, price: String(p.price), stock: String(p.stock), description: p.description ?? "" });
+  }
+  async function saveEdit(id: string) {
+    const price = parseFloat(edit.price.replace(",", "."));
+    if (!edit.name.trim() || isNaN(price) || price < 0) return alert("Vérifie le nom et le prix.");
+    setSavingEdit(true);
+    const body = { name: edit.name.trim(), price, stock: Math.max(0, parseInt(edit.stock) || 0), description: edit.description.trim() };
+    const res = await fetch(`/api/products/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    setSavingEdit(false);
+    if (!res.ok) return alert("Enregistrement impossible, réessaie.");
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...body, description: body.description || null } : p)));
+    setEditId(null);
+  }
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
@@ -277,8 +296,31 @@ export function ProductsManager({ initialProducts }: { initialProducts: Product[
                 </label>
               </div>
               <div className="p-4">
-                <p className="font-medium text-noir">{p.name}</p>
-                <p className="mt-1 text-sm text-noir/60">{formatPrice(p.price)} · Stock : {p.stock}</p>
+                {editId === p.id ? (
+                  <div className="grid gap-2">
+                    <label className="text-xs font-medium text-noir/60">Nom
+                      <input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or" /></label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="text-xs font-medium text-noir/60">Prix (€)
+                        <input type="number" step="0.01" min="0" inputMode="decimal" value={edit.price} onChange={(e) => setEdit({ ...edit, price: e.target.value })} className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or" /></label>
+                      <label className="text-xs font-medium text-noir/60">Stock
+                        <input type="number" min="0" value={edit.stock} onChange={(e) => setEdit({ ...edit, stock: e.target.value })} className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or" /></label>
+                    </div>
+                    <label className="text-xs font-medium text-noir/60">Description
+                      <textarea rows={3} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} className="mt-1 w-full rounded-lg border border-beige-dark px-3 py-2 text-sm outline-none focus:border-or" /></label>
+                    <div className="flex gap-2">
+                      <button type="button" disabled={savingEdit} onClick={() => saveEdit(p.id)} className="flex-1 rounded-full bg-or px-4 py-2 text-sm font-semibold text-noir hover:bg-or-dark hover:text-white">{savingEdit ? "…" : "Enregistrer"}</button>
+                      <button type="button" onClick={() => setEditId(null)} className="rounded-full border-2 border-or px-4 py-2 text-sm font-semibold text-or-dark">Annuler</button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-medium text-noir">{p.name}</p>
+                    <p className="mt-1 text-sm text-noir/60">{formatPrice(p.price)} · Stock : {p.stock}</p>
+                    {p.description && <p className="mt-1 line-clamp-2 text-xs text-noir/50">{p.description}</p>}
+                    <button type="button" onClick={() => startEdit(p)} className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-or-dark hover:underline"><Pencil size={14} />Modifier le nom, le prix, le stock</button>
+                  </>
+                )}
                 <div className="mt-3 flex items-center justify-between">
                   <button
                     type="button"

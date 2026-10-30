@@ -1,3 +1,4 @@
+import ProductMarquee, { type MarqueeProduct } from "@/components/home/ProductMarquee";
 import Link from "next/link";
 import { CalendarCheck, ShieldCheck, MessageSquareText, Search, ArrowUpRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -83,8 +84,24 @@ async function getRecommandes(): Promise<SalonCardData[]> {
   }
 }
 
+async function getVitrineProducts(): Promise<MarqueeProduct[]> {
+  try {
+    const rows = await prisma.product.findMany({
+      where: { isActive: true, isFeatured: true, salon: { isActive: true } },
+      include: { salon: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+    });
+    return rows.map((p: { id: string; name: string; price: unknown; imageUrl: string | null; salonId: string; salon: { name: string } }) => ({
+      id: p.id, name: p.name, price: Number(p.price), imageUrl: p.imageUrl, salonId: p.salonId, salonName: p.salon.name,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function HomePage() {
-  const recommandes = await getRecommandes();
+  const [recommandes, vitrine] = await Promise.all([getRecommandes(), getVitrineProducts()]);
 
   return (
     <>
@@ -167,6 +184,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <ProductMarquee products={vitrine} />
 
       {/* Catégories — rangée compacte plutôt qu'une grille dense */}
       <section className="px-6 py-12">
