@@ -1,5 +1,5 @@
 // Bandeau défilant en haut de toutes les pages. Pour changer le message, modifie MESSAGE.
-const MESSAGE = "🎁 Bientôt des promos ! Soyez prêtes pour des réductions exclusives sur toutes nos prestations";
+const MESSAGE = "🔥 BLACK FRIDAY le 27 novembre ! Soyez prêtes : des réductions folles arrivent sur toutes nos prestations ✨";
 
 export default function PromoBanner() {
   const items = Array.from({ length: 4 }, (_, i) => (
