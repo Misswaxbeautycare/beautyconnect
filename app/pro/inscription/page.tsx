@@ -74,17 +74,19 @@ export default function ProInscriptionPage() {
       <p className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.2em] text-noir/40">
         Pour les professionnels
       </p>
-      <h1 className="text-center font-display text-3xl leading-[1.15] text-noir sm:text-4xl">
-        Le logiciel pensé pour{" "}
-        <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
-          les salons de beauté
-        </span>
-        {" "}: développez votre activité en toute simplicité
+      <h1 className="text-center font-display text-[2.6rem] font-bold leading-[1.02] tracking-tight text-noir sm:text-5xl">
+        Développez
+        <br />
+        votre <span className="text-or-dark">salon.</span>
       </h1>
-      <p className="mt-4 text-center text-sm text-noir/60">
-        Agenda, paiements, clientes et boutique — gérez tout depuis une seule plateforme, sans
-        effort.
+      <p className="mt-5 text-center text-lg leading-relaxed text-noir/70">
+        Le logiciel pensé pour les salons de beauté : agenda, paiements, clientes et boutique, tout au même endroit.
       </p>
+      <ul className="mt-6 flex flex-wrap justify-center gap-2 text-sm">
+        {["14 jours d’essai", "Sans engagement", "Rappels automatiques"].map((t) => (
+          <li key={t} className="rounded-full border border-beige-dark bg-beige px-3.5 py-1.5 font-medium text-noir/80">{t}</li>
+        ))}
+      </ul>
 
       <div className="mt-10 rounded-3xl border border-beige-dark p-6 sm:p-8">
         <h2 className="font-display text-2xl text-noir">Créer mon espace pro</h2>

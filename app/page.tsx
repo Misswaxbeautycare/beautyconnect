@@ -121,7 +121,7 @@ export default async function HomePage() {
             <button
               type="submit"
               aria-label="Rechercher"
-              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-noir px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-or hover:text-noir sm:px-7"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-full bg-or px-5 py-3.5 text-sm font-semibold text-noir transition hover:bg-or-dark hover:text-white sm:px-7"
             >
               <Search size={18} className="sm:hidden" />
               <span className="hidden sm:inline">Rechercher</span>
@@ -143,13 +143,13 @@ export default async function HomePage() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/recherche"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-4 text-base font-semibold text-noir shadow-lg shadow-or/30 transition hover:bg-or-dark hover:text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-4 text-base font-semibold text-noir transition hover:bg-or-dark hover:text-white"
             >
               Trouver un professionnel
             </Link>
             <Link
               href="/pro/inscription"
-              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-noir px-8 py-4 text-base font-semibold text-noir transition hover:bg-noir hover:text-white"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-or px-8 py-4 text-base font-semibold text-noir transition hover:bg-or-dark hover:text-white"
             >
               Je suis un professionnel
               <ArrowUpRight size={18} />

@@ -27,7 +27,7 @@ export function FeaturedSalonCard({ salon }: { salon: SalonCardData }) {
         style={salon.coverUrl ? { backgroundImage: `url(${salon.coverUrl})` } : undefined}
       >
         {!salon.coverUrl && (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-or to-noir">
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-beige to-or-light">
             <span className="font-display text-2xl text-white/30">
               {salon.name.charAt(0)}
             </span>

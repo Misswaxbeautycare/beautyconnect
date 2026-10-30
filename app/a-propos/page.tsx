@@ -6,7 +6,7 @@ export default function AProposPage() {
       </p>
       <h1 className="font-display text-3xl text-noir sm:text-4xl">
         L&apos;excellence de la beauté,{" "}
-        <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+        <span className="text-or-dark">
           à portée de clic
         </span>
       </h1>

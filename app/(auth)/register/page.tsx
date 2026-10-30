@@ -72,14 +72,14 @@ function RegisterForm() {
         {isPro ? (
           <>
             Développez{" "}
-            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+            <span className="text-or-dark">
               votre salon
             </span>
           </>
         ) : (
           <>
             Trouvez votre prochain{" "}
-            <span className="bg-gradient-to-r from-or-dark to-or bg-clip-text text-transparent">
+            <span className="text-or-dark">
               rendez-vous beauté
             </span>
           </>
