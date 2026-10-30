@@ -229,21 +229,21 @@ export default async function HomePage() {
       </section>
 
       {/* CTA Pro */}
-      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-noir px-6 py-16 text-center">
+      <section className="relative mx-6 my-12 overflow-hidden rounded-3xl bg-beige px-6 py-16 text-center">
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/10 blur-3xl"
+          className="pointer-events-none absolute -right-10 -top-10 h-64 w-64 rounded-full bg-or/20 blur-3xl"
         />
-        <h2 className="relative mb-3 font-display text-2xl text-white">
+        <h2 className="relative mb-3 font-display text-3xl font-bold text-noir">
           Vous êtes un professionnel de la beauté ?
         </h2>
-        <p className="relative mx-auto mb-8 max-w-md text-white/60">
+        <p className="relative mx-auto mb-8 max-w-md text-noir/70">
           Développez votre activité, gérez votre agenda et vos paiements sur
           Beauty Connect.
         </p>
         <Link
           href="/pro/inscription"
-          className="relative inline-block rounded-full bg-white px-10 py-3.5 font-semibold text-noir shadow-lg transition hover:bg-or"
+          className="relative inline-block rounded-full bg-or px-10 py-3.5 font-semibold text-noir transition hover:bg-or-dark hover:text-white active:bg-or-dark active:text-white"
         >
           Créer mon salon
         </Link>
