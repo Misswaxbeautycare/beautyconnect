@@ -47,6 +47,10 @@ export async function Footer() {
         </div>
       </div>
       <div className="border-t border-noir/15 py-6 text-center text-xs text-noir/60">
+        <div className="mb-2 flex flex-wrap justify-center gap-x-5 gap-y-1">
+          <Link href="/mentions-legales" className="hover:text-white hover:underline">Mentions légales</Link>
+          <Link href="/confidentialite" className="hover:text-white hover:underline">Politique de confidentialité</Link>
+        </div>
         © {new Date().getFullYear()} Beauty Connect — Tous droits réservés
       </div>
     </footer>
