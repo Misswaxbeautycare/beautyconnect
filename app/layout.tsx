@@ -1,3 +1,4 @@
+import PromoBanner from "@/components/layout/PromoBanner";
 import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" style={{ colorScheme: "light only" }}>
       <body className="overflow-x-hidden bg-white">
+        <PromoBanner />
         <Navbar />
         <main className="min-h-screen bg-white">{children}</main>
         <Footer />

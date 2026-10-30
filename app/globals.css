@@ -34,3 +34,9 @@ textarea {
   color: #0a0a0a;
   color-scheme: light;
 }
+
+/* Bandeau promo défilant */
+@keyframes promo-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.promo-track { animation: promo-scroll 40s linear infinite; }
+.promo-banner:hover .promo-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .promo-track { animation: none; } }
