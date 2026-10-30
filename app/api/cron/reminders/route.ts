@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendDuePromos } from "@/lib/promo";
+
+export const maxDuration = 60;
 import { prisma } from "@/lib/prisma";
 import { getResend } from "@/lib/resend";
 import { startOfDay, endOfDay, addDays } from "date-fns";
@@ -126,6 +129,9 @@ export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
+
+  // Campagnes promo (mensuelles et programmées) : envoyées avant les rappels
+  try { await sendDuePromos(); } catch (e) { console.error("[cron] campagnes promo", e); }
 
   const maintenant = new Date();
   const demain = addDays(maintenant, 1);

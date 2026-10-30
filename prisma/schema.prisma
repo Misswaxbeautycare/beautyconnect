@@ -161,6 +161,8 @@ model Salon {
   products       Product[]
   promotions     Promotion[]
   contacts       Contact[]
+  promoCampaigns PromoCampaign[]
+  promoOptOuts   PromoOptOut[]
 
   @@map("salons")
 }
@@ -541,4 +543,43 @@ model Contact {
   createdAt DateTime @default(now())
 
   @@map("contacts")
+}
+
+// ------------------------------------------------------------
+// CAMPAGNES PROMO PAR EMAIL (anciennes clientes)
+// ------------------------------------------------------------
+
+// kind = "MENSUELLE" : envoyée automatiquement chaque mois (jour choisi)
+// kind = "PROGRAMMEE" : envoyée une seule fois à la date choisie
+model PromoCampaign {
+  id          String    @id @default(uuid())
+  salonId     String
+  salon       Salon     @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  kind        String
+  discountPct Int
+  service     String    @default("votre prochaine prestation")
+  code        String
+  dayOfMonth  Int       @default(1)
+  validDays   Int       @default(14)
+  sendDate    DateTime?
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+  lastSentAt  DateTime?
+  sentCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([isActive, kind])
+  @@map("promo_campaigns")
+}
+
+// Clientes qui ont demandé à ne plus recevoir les promotions d'un salon
+model PromoOptOut {
+  id        String   @id @default(uuid())
+  salonId   String
+  salon     Salon    @relation(fields: [salonId], references: [id], onDelete: Cascade)
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([salonId, email])
+  @@map("promo_optouts")
 }
